@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pancasila Mega Game - SMP Challenge</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- SheetJS & jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Merriweather:wght@400;700&family=Roboto+Mono:wght@500;700&display=swap');
+    
+    :root {
+      --primary-color: #dc2626;
+      --primary-hover: #b91c1c;
+      --primary-glow: rgba(220, 38, 38, 0.25);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .font-game { font-family: 'Fredoka', cursive, sans-serif; }
+    .font-serif-custom { font-family: 'Merriweather', serif; }
+    .font-mono-custom { font-family: 'Roboto Mono', monospace; }
+
+    .btn-primary {
+      background-color: var(--primary-color) !important;
+      color: #ffffff !important;
+    }
+    .btn-primary:hover {
+      background-color: var(--primary-hover) !important;
+    }
+    .text-primary {
+      color: var(--primary-color) !important;
+    }
+    .border-primary {
+      border-color: var(--primary-color) !important;
+    }
+
+    .blur-lock {
+      filter: blur(8px);
+      opacity: 0.25;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* THEME PRESETS */
+    body.screen-slate {
+      background-color: #0d1322;
+      color: #f8fafc;
+    }
+    body.screen-black {
+      background-color: #000000;
+      color: #ffffff;
+    }
+    body.screen-light {
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    body.screen-light .card-bg {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    body.screen-light .text-light-muted {
+      color: #475569 !important;
+    }
+
+    body.screen-warm {
+      background-color: #fef9c3;
+      color: #78350f;
+    }
+    body.screen-warm .card-bg {
+      background-color: #fef08a !important;
+      color: #78350f !important;
+      border-color: #fde047 !important;
+    }
+    body.screen-warm .text-light-muted {
+      color: #92400e !important;
+    }
+
+    /* FONT SIZE SCALES */
+    html.scale-normal { font-size: 16px; }
+    html.scale-large { font-size: 18px; }
+    html.scale-xlarge { font-size: 20px; }
+  </style>
+</head>
+<body class="screen-slate min-h-screen antialiased flex flex-col selection:bg-red-500 selection:text-white">
+
+  <!-- ================= TEMPLATE CUSTOMIZER DRAWER ================= -->
+  <div id="styleSwitcherToggle" onclick="toggleStylePanel()" class="fixed right-0 top-1/3 z-[3000] bg-amber-500 text-slate-950 p-3 rounded-l-2xl shadow-2xl cursor-pointer hover:scale-105 transition-all flex items-center gap-2 font-bold border-l border-t border-b border-amber-300">
+    <i data-lucide="palette" class="w-6 h-6"></i>
+    <span class="text-xs font-extrabold uppercase tracking-wider hidden md:inline">Customizer</span>
+  </div>
+
+  <div id="stylePanel" class="fixed right-0 top-0 bottom-0 w-80 md:w-96 bg-slate-900/95 backdrop-blur-2xl border-l border-slate-700/80 z-[3001] shadow-2xl transition-transform duration-300 translate-x-full flex flex-col justify-between p-6 overflow-y-auto">
+    <div class="space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div>
+          <h3 class="font-bold text-white text-lg leading-tight">Template Customizer</h3>
+          <p class="text-xs text-slate-400">Customize and preview in real time</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="resetCustomizer()" title="Reset Default" class="p-1.5 text-slate-400 hover:text-amber-400 transition relative">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            <span class="w-2 h-2 bg-red-500 rounded-full absolute top-1 right-1"></span>
+          </button>
+          <button onclick="toggleStylePanel()" class="p-1.5 text-slate-400 hover:text-white transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <span class="inline-block px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold rounded-md">Theming</span>
+
+      <!-- Primary Color -->
+      <div>
+        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Primary Color</label>
+        <div class="grid grid-cols-6 gap-2">
+          <button onclick="setPrimaryColor('#dc2626', '#b91c1c')" class="w-10 h-10 rounded-xl bg-red-600 border-2 border-white/80 shadow-md transform hover:scale-105 transition"></button>
+          <button onclick="setPrimaryColor('#6366f1', '#4f46e5')" class="w-10 h-10 rounded-xl bg-indigo-500 border-2 border-transparent hover:border-white/80 shadow-md transform hover:scale-105 transition"></button>
+          <button onclick="setPrimaryColor('#0d9488', '#0f766e')" class="w-10 h-10 rounded-xl bg-teal-600 border-2 border-transparent hover:border-white/80 shadow-md transform hover:scale-105 transition"></button>
+          <button onclick="setPrimaryColor('#f59e0b', '#d97706')" class="w-10 h-10 rounded-xl bg-amber-500 border-2 border-transparent hover:border-white/80 shadow-md transform hover:scale-105 transition"></button>
+          <button onclick="setPrimaryColor('#3b82f6', '#2563eb')" class="w-10 h-10 rounded-xl bg-blue-500 border-2 border-transparent hover:border-white/80 shadow-md transform hover:scale-105 transition"></button>
+          <button onclick="setPrimaryColor('#e11d48', '#be123c')" class="w-10 h-10 rounded-xl bg-rose-600 border-2 border-transparent hover:border-white/80 shadow-md transform hover:scale-105 transition"></button>
+        </div>
+      </div>
+
+      <!-- Theme Mode -->
+      <div>
+        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Theme</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="setThemeMode('light')" id="btnThemeLight" class="p-3 bg-slate-800 border border-slate-700 rounded-xl flex flex-col items-center gap-2 hover:border-amber-500 text-slate-300 transition">
+            <i data-lucide="sun" class="w-5 h-5 text-amber-400"></i>
+            <span class="text-xs font-semibold">Light</span>
+          </button>
+          <button onclick="setThemeMode('dark')" id="btnThemeDark" class="p-3 bg-slate-800 border-2 border-amber-500 rounded-xl flex flex-col items-center gap-2 text-amber-400 font-bold transition">
+            <i data-lucide="moon" class="w-5 h-5"></i>
+            <span class="text-xs">Dark</span>
+          </button>
+          <button onclick="setThemeMode('system')" id="btnThemeSystem" class="p-3 bg-slate-800 border border-slate-700 rounded-xl flex flex-col items-center gap-2 hover:border-amber-500 text-slate-300 transition">
+            <i data-lucide="monitor" class="w-5 h-5"></i>
+            <span class="text-xs font-semibold">System</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- WARNA LAYAR / KONTRAS -->
+      <div class="pt-2 border-t border-slate-800">
+        <label class="block font-mono text-xs font-extrabold text-amber-400 tracking-widest uppercase mb-3">
+          WARNA LAYAR / KONTRAS
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="setScreenContrast('slate')" id="radioSlate" class="p-3.5 bg-[#0d1322] border-2 border-amber-500 rounded-2xl flex items-center gap-3 text-white font-mono text-xs font-bold transition shadow-lg">
+            <span id="circleSlate" class="w-4 h-4 rounded-full border-2 border-amber-400 flex items-center justify-center">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            </span>
+            <span>Slate Dark</span>
+          </button>
+
+          <button onclick="setScreenContrast('black')" id="radioBlack" class="p-3.5 bg-black border border-slate-800 rounded-2xl flex items-center gap-3 text-white font-mono text-xs font-bold transition hover:border-amber-500">
+            <span id="circleBlack" class="w-4 h-4 rounded-full border-2 border-slate-500"></span>
+            <span>OLED Black</span>
+          </button>
+
+          <button onclick="setScreenContrast('light')" id="radioLight" class="p-3.5 bg-[#f1f5f9] border border-slate-300 rounded-2xl flex items-center gap-3 text-slate-900 font-mono text-xs font-bold transition hover:border-amber-500">
+            <span id="circleLight" class="w-4 h-4 rounded-full border-2 border-slate-400"></span>
+            <span class="text-left leading-tight">Terang<br>Light</span>
+          </button>
+
+          <button onclick="setScreenContrast('warm')" id="radioWarm" class="p-3.5 bg-[#fef08a] border border-amber-300 rounded-2xl flex items-center gap-3 text-[#78350f] font-mono text-xs font-bold transition hover:border-amber-500">
+            <span id="circleWarm" class="w-4 h-4 rounded-full border-2 border-[#b45309]"></span>
+            <span class="text-left leading-tight">Warm<br>Klasik</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Font Scale -->
+      <div>
+        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Ukuran Teks Proyektor</label>
+        <div class="flex gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+          <button onclick="setFontScale('scale-normal')" id="btnScaleNormal" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950">100%</button>
+          <button onclick="setFontScale('scale-large')" id="btnScaleLarge" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">112%</button>
+          <button onclick="setFontScale('scale-xlarge')" id="btnScaleXLarge" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">125%</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pt-6 border-t border-slate-800 text-center">
+      <button onclick="toggleStylePanel()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs">
+        Terapkan Perubahan
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= AUTH GUARD: LOGIN SCREEN ================= -->
+  <div id="loginSection" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-red-950 to-slate-900">
+    <div class="max-w-md w-full card-bg bg-slate-800/90 backdrop-blur-xl border border-slate-700/80 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+      <div class="absolute -right-12 -top-12 w-36 h-36 bg-red-600/20 rounded-full blur-2xl"></div>
+      <div class="absolute -left-12 -bottom-12 w-36 h-36 bg-amber-600/20 rounded-full blur-2xl"></div>
+      
+      <div class="text-center mb-8 relative z-10">
+        <div class="inline-flex p-3.5 btn-primary rounded-2xl shadow-lg mb-4 text-white">
+          <i data-lucide="shield-check" class="w-10 h-10"></i>
+        </div>
+        <h1 class="text-3xl font-extrabold text-white tracking-tight font-game">PANCASILA CHALLENGE</h1>
+        <p class="text-slate-400 text-sm mt-1 text-light-muted">Portal Fasilitator Guru & Smart Game Host</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 relative z-10">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider mb-2">Username Guru</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="usernameInput" value="guru_pancasila" required class="w-full pl-11 pr-4 py-3 bg-slate-900/80 border border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:outline-none text-white text-sm" placeholder="Masukkan username" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider mb-2">Password</label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="password" id="passwordInput" value="merdeka123" required class="w-full pl-11 pr-4 py-3 bg-slate-900/80 border border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:outline-none text-white text-sm" placeholder="Masukkan password" />
+          </div>
+        </div>
+        <button type="submit" class="w-full py-3.5 btn-primary font-bold rounded-xl shadow-lg transition-all duration-200 transform active:scale-95 flex items-center justify-center gap-2">
+          <span>Masuk ke Web Game</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+      <p class="text-center text-xs text-slate-500 mt-6 text-light-muted">Default Akses Guru: <b>guru_pancasila</b> / <b>merdeka123</b></p>
+    </div>
+  </div>
+
+  <!-- ================= APP WRAPPER (HIDDEN BEFORE AUTH) ================= -->
+  <div id="appSection" class="hidden flex-1 flex flex-col min-h-screen">
+    <header class="bg-slate-950/80 backdrop-blur border-b border-slate-800 px-6 py-3.5 flex items-center justify-between sticky top-0 z-30">
+      <div class="flex items-center gap-3">
+        <div class="p-2 btn-primary rounded-lg text-white">
+          <i data-lucide="flame" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <span class="text-xs font-semibold text-amber-500 tracking-wider uppercase">Mega Game Interaktif SMP</span>
+          <h2 class="text-base font-bold text-white leading-none">PANCASILA CHALLENGE</h2>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-800 p-1.5 rounded-xl text-xs font-medium">
+        <button onclick="switchTab('home')" id="tabBtnHome" class="px-3 py-1.5 rounded-lg btn-primary text-white flex items-center gap-1.5">
+          <i data-lucide="home" class="w-4 h-4"></i> Beranda
+        </button>
+        <button onclick="switchTab('game')" id="tabBtnGame" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center gap-1.5">
+          <i data-lucide="gamepad-2" class="w-4 h-4"></i> Arena Game
+        </button>
+        <button onclick="switchTab('scoreboard')" id="tabBtnScore" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center gap-1.5">
+          <i data-lucide="trophy" class="w-4 h-4"></i> Papan Skor
+        </button>
+        <button onclick="switchTab('settings')" id="tabBtnSettings" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center gap-1.5">
+          <i data-lucide="sliders" class="w-4 h-4"></i> Pengaturan
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="triggerSurpriseCard(true)" title="Manual Tes Kartu Tantangan" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-md">
+          <i data-lucide="sparkles" class="w-4 h-4"></i> Kartu Kejutan
+        </button>
+        <button onclick="toggleFullscreen()" title="Layar Penuh" class="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-300">
+          <i data-lucide="maximize" class="w-4 h-4"></i>
+        </button>
+        <button onclick="openModal('modalLogout')" title="Keluar" class="p-2 bg-red-950/60 hover:bg-red-900/80 border border-red-800 rounded-lg text-red-400">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col gap-6">
+
+      <!-- ================= TAB 0: HOME / LANDING SCREEN ================= -->
+      <div id="viewHome" class="flex-1 flex flex-col gap-6">
+        <div class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+          <div class="max-w-2xl relative z-10 space-y-4">
+            <span class="px-3.5 py-1.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold rounded-full uppercase tracking-widest">Pendidikan Pancasila SMP</span>
+            <h1 class="text-4xl md:text-5xl font-black text-white font-game tracking-wide leading-tight">
+              PANCASILA MEGA GAME <span class="text-amber-400">CHALLENGE</span>
+            </h1>
+            <p class="text-slate-300 text-sm leading-relaxed text-light-muted">
+              Platform media pembelajaran interaktif berbasis kuis gamifikasi 5 Ronde & Kartu Tantangan Kejutan. Dirancang khusus untuk menguji pemahaman, kerja sama tim, dan pengamalan nilai-nilai luhur Pancasila dalam kehidupan sehari-hari siswa.
+            </p>
+            <div class="pt-2 flex flex-wrap gap-3">
+              <button onclick="startGameFromLanding()" class="px-6 py-3.5 btn-primary font-bold text-sm rounded-xl shadow-lg flex items-center gap-2">
+                <i data-lucide="play-circle" class="w-5 h-5"></i> Mulai Arena Game Sekarang
+              </button>
+              <button onclick="switchTab('settings')" class="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 flex items-center gap-2 card-bg">
+                <i data-lucide="users" class="w-4 h-4"></i> Atur Tim & Timer
+              </button>
+            </div>
+          </div>
+          <div class="w-48 h-48 md:w-64 md:h-64 bg-amber-500/10 border border-amber-500/20 rounded-3xl flex items-center justify-center p-6 text-amber-400 shadow-2xl relative">
+            <i data-lucide="trophy" class="w-32 h-32 animate-bounce"></i>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <i data-lucide="layers" class="w-5 h-5 text-primary"></i> Alur 5 Ronde Permainan
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="card-bg bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 space-y-2">
+              <span class="text-xs font-bold text-red-400 bg-red-950/80 px-2.5 py-1 rounded-md border border-red-800">Ronde 1</span>
+              <h4 class="font-bold text-base">Pilihan Ganda</h4>
+              <p class="text-xs text-slate-400 text-light-muted">20 Soal dasar konsep & simbol Pancasila (+10 Poin).</p>
+            </div>
+            <div class="card-bg bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 space-y-2">
+              <span class="text-xs font-bold text-amber-400 bg-amber-950/80 px-2.5 py-1 rounded-md border border-amber-800">Ronde 2</span>
+              <h4 class="font-bold text-base">Benar / Salah</h4>
+              <p class="text-xs text-slate-400 text-light-muted">10 Soal verifikasi pernyataan pengamalan (+10 Poin).</p>
+            </div>
+            <div class="card-bg bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 space-y-2">
+              <span class="text-xs font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-md border border-emerald-800">Ronde 3</span>
+              <h4 class="font-bold text-base">Detektif Kasus</h4>
+              <p class="text-xs text-slate-400 text-light-muted">10 Soal studi kasus toleransi & persatuan (+15 Poin).</p>
+            </div>
+            <div class="card-bg bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 space-y-2">
+              <span class="text-xs font-bold text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-800">Ronde 4</span>
+              <h4 class="font-bold text-base">Tebak & Rebutan</h4>
+              <p class="text-xs text-slate-400 text-light-muted">10 Soal aksi cepat tanggap antar tim (+15 Poin).</p>
+            </div>
+            <div class="card-bg bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 space-y-2">
+              <span class="text-xs font-bold text-purple-400 bg-purple-950/80 px-2.5 py-1 rounded-md border border-purple-800">Ronde 5</span>
+              <h4 class="font-bold text-base">Final Battle (HOTS)</h4>
+              <p class="text-xs text-slate-400 text-light-muted">10 Soal pemikiran kritis tingkat tinggi (+25 Poin).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 1: ARENA GAME ================= -->
+      <div id="viewGame" class="hidden flex-1 flex flex-col gap-5">
+        <div class="card-bg bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-lg">
+          <div class="flex items-center gap-3">
+            <span id="roundBadge" class="px-3.5 py-1.5 btn-primary font-game text-white text-sm font-semibold rounded-xl">RONDE 1</span>
+            <div>
+              <h3 id="roundTitle" class="text-base font-bold">PILIHAN GANDA (10 Poin)</h3>
+              <p id="questionProgress" class="text-xs text-slate-400 text-light-muted">Soal 1 dari 20</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 bg-slate-900 px-4 py-2 rounded-xl border border-slate-700">
+              <i data-lucide="clock" class="w-5 h-5 text-amber-400 animate-pulse"></i>
+              <span id="timerDisplay" class="text-2xl font-black font-game text-amber-400 w-12 text-center">15s</span>
+              <div class="flex items-center gap-1.5 ml-2">
+                <button onclick="pauseTimer()" id="btnTimerStart" class="text-xs bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg font-bold">Jeda</button>
+                <button onclick="resetTimer(); startTimer();" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg">Reset</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="prevQuestion()" class="p-2.5 bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded-xl text-white">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <button onclick="nextQuestion()" class="p-2.5 btn-primary rounded-xl text-white font-semibold flex items-center gap-1 text-sm shadow-md">
+              <span>Soal Berikutnya</span>
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-bg bg-slate-800/90 border border-slate-700/80 rounded-3xl p-8 shadow-2xl relative flex-1 flex flex-col justify-between">
+          <div id="timeOutLockBanner" class="hidden absolute inset-0 z-20 bg-slate-950/80 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center text-center p-6">
+            <div class="w-16 h-16 bg-red-600/20 border border-red-500 text-red-500 rounded-2xl flex items-center justify-center mb-3">
+              <i data-lucide="lock" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-2xl font-black text-white font-game">WAKTU HABIS!</h3>
+            <p class="text-sm text-slate-300 max-w-md mt-1 mb-4">Waktu telah habis. Klik tombol untuk membuka soal & melihat kunci jawaban.</p>
+            <button onclick="toggleAnswerKey()" class="px-6 py-3 btn-primary font-black text-sm rounded-xl shadow-xl flex items-center gap-2">
+              <i data-lucide="eye" class="w-5 h-5"></i> Buka Soal & Lihat Jawaban Guru
+            </button>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <span class="text-xs uppercase tracking-wider font-semibold text-amber-400 bg-amber-950/60 border border-amber-800/60 px-3 py-1 rounded-full">Tantangan Kelas</span>
+              <button onclick="toggleAnswerKey()" id="btnRevealKey" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Kunci Jawaban
+              </button>
+            </div>
+            <h2 id="currentQuestionText" class="text-2xl md:text-3xl font-extrabold leading-relaxed">
+              Memuat soal permainan...
+            </h2>
+          </div>
+
+          <div id="optionsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div id="answerKeyBanner" class="hidden bg-emerald-950/80 border border-emerald-600/50 rounded-2xl p-4 flex items-center justify-between animate-fade-in mb-4">
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-emerald-600 rounded-lg text-white">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <span class="text-xs text-emerald-400 font-bold uppercase">Kunci Jawaban Guru</span>
+                <p id="answerKeyText" class="text-base font-bold text-white">A. Ketuhanan Yang Maha Esa</p>
+              </div>
+            </div>
+            <span class="text-xs text-emerald-300 font-bold">Poin: +<span id="currentPointsAward">10</span></span>
+          </div>
+
+          <div class="pt-4 border-t border-slate-700/60 flex flex-wrap items-center justify-between gap-3">
+            <span class="text-xs font-semibold uppercase tracking-wide text-light-muted">Beri Poin ke Tim:</span>
+            <div id="teamQuickPointButtons" class="flex flex-wrap gap-2">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 2: SCOREBOARD ================= -->
+      <div id="viewScoreboard" class="hidden flex-1 flex flex-col gap-5">
+        <div class="card-bg bg-slate-800/80 border border-slate-700 rounded-2xl p-5 shadow-lg flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold font-game">Papan Skor Klasemen Utama</h2>
+            <p class="text-xs text-slate-400 text-light-muted">Rekapitulasi nilai per ronde (R1–R5), bonus tantangan, dan ranking</p>
+          </div>
+          <div class="flex flex-wrap gap-2.5">
+            <button onclick="saveGameToGAS()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-md">
+              <i data-lucide="cloud-upload" class="w-4 h-4"></i> Simpan Sesi (Cloud)
+            </button>
+            <button onclick="exportToExcel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-md">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Ekspor Excel (.xlsx)
+            </button>
+            <button onclick="exportToPDF()" class="px-4 py-2 btn-primary text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-md">
+              <i data-lucide="file-text" class="w-4 h-4"></i> Rekap PDF
+            </button>
+            <button onclick="generateCertificate()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-md">
+              <i data-lucide="award" class="w-4 h-4"></i> Sertifikat Juara
+            </button>
+          </div>
+        </div>
+
+        <div class="card-bg bg-slate-800/90 border border-slate-700 rounded-3xl overflow-hidden shadow-2xl">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-900/90 text-xs uppercase tracking-wider text-slate-400 border-b border-slate-700">
+                <tr>
+                  <th class="py-4 px-6">Peringkat</th>
+                  <th class="py-4 px-6">Nama Tim / Kapten</th>
+                  <th class="py-4 px-4 text-center">R1 (PG)</th>
+                  <th class="py-4 px-4 text-center">R2 (B/S)</th>
+                  <th class="py-4 px-4 text-center">R3 (Kasus)</th>
+                  <th class="py-4 px-4 text-center">R4 (Rebutan)</th>
+                  <th class="py-4 px-4 text-center">R5 (HOTS)</th>
+                  <th class="py-4 px-4 text-center">Bonus/Penalti</th>
+                  <th class="py-4 px-6 text-right">Total Skor</th>
+                  <th class="py-4 px-6 text-center">Aksi Poin</th>
+                </tr>
+              </thead>
+              <tbody id="scoreboardTableBody" class="divide-y divide-slate-700/60">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 3: SETTINGS ================= -->
+      <div id="viewSettings" class="hidden flex-1 flex flex-col gap-5">
+        <div class="card-bg bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg max-w-3xl">
+          <h2 class="text-lg font-bold mb-4">Pengaturan Global Permainan</h2>
+          
+          <div class="p-4 bg-slate-900 border border-slate-700 rounded-2xl mb-6">
+            <label class="block text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">Durasi Timer Per Soal</label>
+            <select id="globalTimerSelect" onchange="changeGlobalTimer(this.value)" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm font-bold">
+              <option value="5">5 Detik (Super Cepat)</option>
+              <option value="10">10 Detik (Standar)</option>
+              <option value="15" selected>15 Detik (Direkomendasikan)</option>
+              <option value="20">20 Detik</option>
+              <option value="30">30 Detik</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label class="block text-xs font-semibold uppercase mb-2">Nama Kelas</label>
+              <input type="text" id="settingClassName" value="Kelas IX A - SMP Negeri 1" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase mb-2">Nama Guru</label>
+              <input type="text" id="settingTeacherName" value="Bpk. Muhammad Yusuf, S.Pd." class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-sm" />
+            </div>
+          </div>
+
+          <h3 class="text-sm font-bold mb-3 uppercase">Daftar Tim (Maks 5 Tim)</h3>
+          <div id="teamsConfigList" class="space-y-3 mb-6">
+            <!-- Rendered by JS -->
+          </div>
+          <button onclick="saveTeamSettings()" class="px-5 py-2.5 btn-primary font-bold text-white rounded-xl text-sm shadow-md">
+            Simpan Perubahan
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+  <div id="modalRoundIntro" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+    <div class="bg-gradient-to-b from-slate-800 to-slate-900 border border-amber-500/50 rounded-3xl p-8 max-w-xl w-full shadow-2xl text-center relative overflow-hidden">
+      <div class="w-20 h-20 bg-amber-500/20 border border-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-4 text-amber-400 shadow-xl">
+        <i data-lucide="flag" class="w-10 h-10"></i>
+      </div>
+      <span id="introRoundBadge" class="px-3.5 py-1.5 bg-amber-500 text-slate-950 text-xs font-bold rounded-full uppercase tracking-widest">RONDE 1</span>
+      <h2 id="introRoundTitle" class="text-3xl font-black text-white font-game mt-3 mb-2">PILIHAN GANDA</h2>
+      <p id="introRoundDesc" class="text-slate-300 text-sm leading-relaxed mb-6">Pilihlah satu jawaban yang paling tepat.</p>
+      <button onclick="startRoundFromIntro()" class="w-full py-4 btn-primary font-black rounded-xl text-base shadow-lg flex items-center justify-center gap-2">
+        <span>MULAI RONDE INI</span>
+        <i data-lucide="play" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </div>
+
+  <div id="modalRoundEndRecap" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+    <div class="card-bg bg-slate-800 border border-slate-700 rounded-3xl p-6 max-w-lg w-full shadow-2xl text-center">
+      <div class="inline-flex p-3 bg-amber-500/20 border border-amber-500 text-amber-400 rounded-2xl mb-3">
+        <i data-lucide="trophy" class="w-8 h-8"></i>
+      </div>
+      <h3 id="recapRoundTitle" class="text-2xl font-black font-game">AKHIR RONDE 1</h3>
+      <p class="text-xs text-slate-400 mb-4">Klasemen Tim Unggul Ronde Ini</p>
+
+      <div id="roundLeaderList" class="space-y-2 mb-6 text-left">
+        <!-- Rendered by JS -->
+      </div>
+
+      <button onclick="closeModal('modalRoundEndRecap')" class="w-full py-3 btn-primary font-bold rounded-xl text-sm shadow-md">
+        Lanjutkan ke Ronde Berikutnya
+      </button>
+    </div>
+  </div>
+
+  <div id="modalRandomCard" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+    <div class="bg-gradient-to-br from-amber-950/90 via-slate-900 to-slate-900 border-2 border-amber-500 rounded-3xl p-6 max-w-md w-full shadow-2xl text-center relative overflow-hidden">
+      <div class="w-16 h-16 bg-amber-500/20 border border-amber-500 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <i data-lucide="sparkles" class="w-8 h-8 animate-pulse"></i>
+      </div>
+      <span class="text-[10px] uppercase font-bold text-amber-300 bg-amber-950 px-3 py-1 rounded-full border border-amber-700">⚡ KEJUTAN KARTU TANTANGAN!</span>
+      <h3 id="cardEventTitle" class="text-2xl font-black text-white font-game mt-2">YEL-YEL PANCASILA</h3>
+      <p id="cardEventDesc" class="text-xs text-slate-300 my-3 leading-relaxed">Buat yel-yel Pancasila selama 15 detik bersama tim.</p>
+      
+      <div class="pt-3 border-t border-slate-700/80 text-left">
+        <label class="text-[11px] text-slate-400 uppercase font-bold block mb-2">Pilih Tim Pelaksana (+<span id="cardEventPts">20</span>):</label>
+        <div id="cardTeamSelectButtons" class="grid grid-cols-2 gap-2">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+      <button onclick="closeModal('modalRandomCard'); renderQuestion();" class="w-full mt-4 py-2.5 bg-slate-800 text-slate-400 text-xs font-semibold rounded-xl">Batal / Lewati</button>
+    </div>
+  </div>
+
+  <div id="modalScoreAdjust" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div class="card-bg bg-slate-800 border border-slate-700 rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+      <h3 class="text-base font-bold mb-2">Atur Poin Tim</h3>
+      <p id="modalTeamNameDisplay" class="text-xs text-slate-400 mb-4">Tim 1</p>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs">Penyesuaian Nilai</label>
+          <input type="number" id="manualPointInput" value="10" class="w-full mt-1.5 px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-sm" />
+        </div>
+        <div class="flex gap-2">
+          <button onclick="applyScoreAdjustment(1)" class="flex-1 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">+ Tambah</button>
+          <button onclick="applyScoreAdjustment(-1)" class="flex-1 py-2 bg-red-600 text-white rounded-xl text-xs font-bold">- Kurang</button>
+        </div>
+      </div>
+      <button onclick="closeModal('modalScoreAdjust')" class="w-full mt-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs">Batal</button>
+    </div>
+  </div>
+
+  <div id="modalLogout" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div class="card-bg bg-slate-800 border border-slate-700 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
+      <div class="w-12 h-12 bg-red-900/50 border border-red-700 rounded-2xl flex items-center justify-center mx-auto mb-4 text-red-400">
+        <i data-lucide="log-out" class="w-6 h-6"></i>
+      </div>
+      <h3 class="text-base font-bold mb-2">Akhiri Sesi Guru?</h3>
+      <p class="text-xs text-slate-400 mb-6">Pertandingan akan dijeda dan Anda akan diarahkan ke layar login.</p>
+      <div class="flex gap-3">
+        <button onclick="closeModal('modalLogout')" class="flex-1 py-2.5 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Batal</button>
+        <button onclick="confirmLogout()" class="flex-1 py-2.5 btn-primary font-bold rounded-xl text-xs">Ya, Keluar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed top-5 right-5 z-[2000] hidden items-center gap-3 px-4 py-3 bg-slate-800 border border-slate-700 text-white rounded-2xl shadow-2xl transition-all duration-300">
+    <div id="toastIcon" class="text-emerald-400">
+      <i data-lucide="check-circle" class="w-5 h-5"></i>
+    </div>
+    <span id="toastMessage" class="text-xs font-semibold">Aksi berhasil</span>
+  </div>
+
+  <div id="loadingOverlay" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md flex-col gap-4">
+    <div class="w-12 h-12 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+    <p id="loadingText" class="text-xs font-semibold text-slate-300 uppercase tracking-widest">Menghubungkan ke Server...</p>
+  </div>
+
+  <!-- ================= PRODUCTION APP SCRIPT INTEGRATION ================= -->
+  <script>
+    // URL Google Apps Script Web App Deployment
+    const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOCRI1zJb1TTxVgfhe1fBDE5wcxdAgZ350Pp8PLrHRZXEEDxSLS1xf7cN05sYz1UX8_Q/exec";
+
+    let sessionToken = null;
+
+    const roundMetadata = {
+      1: { title: "PILIHAN GANDA", desc: "Pilihlah satu jawaban yang paling tepat dari 4 opsi yang tersedia. Poin: 10 per soal." },
+      2: { title: "BENAR ATAU SALAH", desc: "Tentukan apakah pernyataan yang ditampilkan BENAR atau SALAH dengan cepat. Poin: 10 per soal." },
+      3: { title: "DETEKTIF KASUS", desc: "Analisis situasi kasus toleransi & keadilan, pilihlah tindakan pengamalan terbaik. Poin: 15 per soal." },
+      4: { title: "TEBAK & REBUTAN", desc: "Ronde cepat tepat antar tim! Rebut bel dan jawab dengan tepat. Poin: 15 per soal." },
+      5: { title: "FINAL BATTLE (HOTS)", desc: "Babak penentuan! Soal analisis kritis tingkat tinggi. Poin: 25 per soal." }
+    };
+
+    // 60 Bank Soal Lengkap
+    let rawQuestions = [
+      // RONDE 1: PILIHAN GANDA (20 Soal)
+      { r: 1, rName: "PILIHAN GANDA", no: 1, pts: 10, q: "Apa bunyi sila pertama Pancasila?", a: "Ketuhanan Yang Maha Esa", b: "Persatuan Indonesia", c: "Keadilan sosial", d: "Kemanusiaan yang adil", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 2, pts: 10, q: "Lambang sila kedua adalah …", a: "Pohon beringin", b: "Rantai", c: "Bintang", d: "Kepala banteng", key: "B" },
+      { r: 1, rName: "PILIHAN GANDA", no: 3, pts: 10, q: "Pohon beringin merupakan lambang sila …", a: "1", b: "2", c: "3", d: "5", key: "C" },
+      { r: 1, rName: "PILIHAN GANDA", no: 4, pts: 10, q: "Sila keempat menekankan pentingnya …", a: "Musyawarah", b: "Persaingan", c: "Kekuasaan", d: "Kepentingan pribadi", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 5, pts: 10, q: "Lambang sila kelima adalah …", a: "Bintang", b: "Padi dan kapas", c: "Rantai", d: "Pohon beringin", key: "B" },
+      { r: 1, rName: "PILIHAN GANDA", no: 6, pts: 10, q: "Dasar negara Indonesia adalah …", a: "UUD 1945", b: "Pancasila", c: "Bhinneka Tunggal Ika", d: "Proklamasi", key: "B" },
+      { r: 1, rName: "PILIHAN GANDA", no: 7, pts: 10, q: "Bhinneka Tunggal Ika berarti …", a: "Berbeda-beda tetapi tetap satu", b: "Semua harus sama", c: "Berbeda berarti terpisah", d: "Bersatu karena sama", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 8, pts: 10, q: "Contoh sila pertama di sekolah …", a: "Menghormati teman beribadah", b: "Memilih ketua", c: "Kerja bakti", d: "Membagi tugas", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 9, pts: 10, q: "Contoh sila kedua …", a: "Menolong tanpa membeda-bedakan", b: "Memaksakan pendapat", c: "Menjauhi teman", d: "Mengejek", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 10, pts: 10, q: "Contoh sila ketiga …", a: "Menghargai keberagaman", b: "Berbuat curang", c: "Menyebar kebencian", d: "Mementingkan diri", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 11, pts: 10, q: "Contoh sila keempat …", a: "Musyawarah", b: "Mengejek", c: "Memaksa", d: "Diam", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 12, pts: 10, q: "Contoh sila kelima …", a: "Bersikap adil", b: "Memilih teman tertentu", c: "Menyela", d: "Mendominasi", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 13, pts: 10, q: "Pancasila ditetapkan sebagai dasar negara pada …", a: "17 Agustus 1945", b: "18 Agustus 1945", c: "1 Juni 1945", d: "22 Juni 1945", key: "B" },
+      { r: 1, rName: "PILIHAN GANDA", no: 14, pts: 10, q: "Tokoh yang memperkenalkan istilah Pancasila pada 1 Juni 1945 adalah …", a: "Soekarno", b: "Moh. Hatta", c: "Soepomo", d: "Moh. Yamin", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 15, pts: 10, q: "Sidang pertama BPUPKI membahas …", a: "Dasar negara", b: "Pemilu", c: "Rapor", d: "Otonomi daerah", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 16, pts: 10, q: "Sikap yang menjaga persatuan adalah …", a: "Menghargai perbedaan", b: "Mengejek budaya lain", c: "Memaksakan adat", d: "Membuat kelompok eksklusif", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 17, pts: 10, q: "Musyawarah bertujuan mencapai …", a: "Mufakat", b: "Kemenangan pribadi", c: "Perdebatan", d: "Paksaan", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 18, pts: 10, q: "Gotong royong paling dekat dengan nilai …", a: "Kerja sama", b: "Egoisme", c: "Persaingan", d: "Diskriminasi", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 19, pts: 10, q: "Pancasila harus diterapkan …", a: "Dalam kehidupan sehari-hari", b: "Hanya saat upacara", c: "Hanya di sekolah", d: "Hanya oleh pejabat", key: "A" },
+      { r: 1, rName: "PILIHAN GANDA", no: 20, pts: 10, q: "Sikap adil berarti …", a: "Memberikan hak secara tepat", b: "Selalu menyamakan semua", c: "Membela teman sendiri", d: "Mengutamakan yang kuat", key: "A" },
+
+      // RONDE 2: BENAR / SALAH (10 Soal)
+      { r: 2, rName: "BENAR / SALAH", no: 1, pts: 10, q: "Menghormati teman yang berbeda agama sesuai sila pertama.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
+      { r: 2, rName: "BENAR / SALAH", no: 2, pts: 10, q: "Memaksakan pendapat merupakan musyawarah yang baik.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "B" },
+      { r: 2, rName: "BENAR / SALAH", no: 3, pts: 10, q: "Gotong royong dapat memperkuat persatuan.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
+      { r: 2, rName: "BENAR / SALAH", no: 4, pts: 10, q: "Pancasila hanya berlaku di lingkungan sekolah.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "B" },
+      { r: 2, rName: "BENAR / SALAH", no: 5, pts: 10, q: "Menghargai budaya daerah lain sesuai nilai persatuan.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
+      { r: 2, rName: "BENAR / SALAH", no: 6, pts: 10, q: "Musyawarah berarti semua orang harus setuju sejak awal.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "B" },
+      { r: 2, rName: "BENAR / SALAH", no: 7, pts: 10, q: "Bersikap adil merupakan pengamalan sila kelima.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
+      { r: 2, rName: "BENAR / SALAH", no: 8, pts: 10, q: "Perbedaan dapat menjadi kekuatan bangsa.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
+      { r: 2, rName: "BENAR / SALAH", no: 9, pts: 10, q: "Mengejek perbedaan sesuai dengan Pancasila.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "B" },
+      { r: 2, rName: "BENAR / SALAH", no: 10, pts: 10, q: "Keputusan bersama perlu dilaksanakan dengan tanggung jawab.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
+
+      // RONDE 3: DETEKTIF KASUS (10 Soal)
+      { r: 3, rName: "DETEKTIF KASUS", no: 1, pts: 15, q: "Teman berbeda agama sedang beribadah dan diganggu. Apa tindakanmu?", a: "Menghentikan gangguan", b: "Ikut mengganggu", c: "Merekam", d: "Membiarkan", key: "A" },
+      { r: 3, rName: "DETEKTIF KASUS", no: 2, pts: 15, q: "Teman diejek karena bahasa daerahnya. Sikap tepat?", a: "Menghargai dan menghentikan ejekan", b: "Ikut tertawa", c: "Menyebarkan video", d: "Menjauhi", key: "A" },
+      { r: 3, rName: "DETEKTIF KASUS", no: 3, pts: 15, q: "Kelompokmu berbeda pendapat. Langkah terbaik?", a: "Musyawarah", b: "Bertengkar", c: "Memaksa", d: "Meninggalkan kelompok", key: "A" },
+      { r: 3, rName: "DETEKTIF KASUS", no: 4, pts: 15, q: "Pembagian tugas tidak adil. Apa yang dilakukan?", a: "Membicarakan dan membagi sesuai kesepakatan", b: "Diam", c: "Menyalahkan", d: "Keluar", key: "A" },
+      { r: 3, rName: "DETEKTIF KASUS", no: 5, pts: 15, q: "Teman tidak diberi kesempatan bicara. Kamu …", a: "Memberinya kesempatan", b: "Memotong", c: "Mengabaikan", d: "Menyuruh diam", key: "A" },
+      { r: 3, rName: "DETEKTIF KASUS", no: 6, pts: 15, q: "Teman kalah lomba dan kecewa. Sikap tepat?", a: "Memberi semangat", b: "Mengejek", c: "Menyalahkan", d: "Meninggalkan", key: "A" },
+      { r: 3, rName: "DETEKTIF KASUS", no: 7, pts: 15, q: "Ada komentar kebencian di media sosial. Respons terbaik?", a: "Tidak menyebarkan dan melaporkan bila perlu", b: "Membalas hinaan", c: "Menyebarkan", d: "Mengajak menyerang", key: "A" },
+      { r: 3, rName: "DETEKTIF KASUS", no: 8, pts: 15, q: "Ketua memilih keputusan sendiri tanpa diskusi. Tindakan tepat?", a: "Mengajak bermusyawarah", b: "Mendukung tanpa bertanya", c: "Marah", d: "Membubarkan kelompok", key: "A" },
+      { r: 3, rName: "DETEKTIF KASUS", no: 9, pts: 15, q: "Anggota tidak mampu melakukan tugas berat. Solusi?", a: "Memberi tugas sesuai kemampuan", b: "Mengejek", c: "Mengeluarkan", d: "Memaksa", key: "A" },
+      { r: 3, rName: "DETEKTIF KASUS", no: 10, pts: 15, q: "Pilihan ketua kelas berbeda. Cara menjaga persatuan?", a: "Menghormati hasil sesuai aturan", b: "Bermusuhan", c: "Mengejek pemenang", d: "Membuat kelompok lawan", key: "A" },
+
+      // RONDE 4: TEBAK & REBUTAN (10 Soal)
+      { r: 4, rName: "TEBAK & REBUTAN", no: 1, pts: 15, q: "Aku berbentuk bintang dan melambangkan sila …", a: "1", b: "2", c: "3", d: "5", key: "A" },
+      { r: 4, rName: "TEBAK & REBUTAN", no: 2, pts: 15, q: "Aku adalah rantai. Aku melambangkan …", a: "Sila 1", b: "Sila 2", c: "Sila 4", d: "Sila 5", key: "B" },
+      { r: 4, rName: "TEBAK & REBUTAN", no: 3, pts: 15, q: "Aku adalah pohon beringin. Nilai utamaku …", a: "Persatuan", b: "Persaingan", c: "Kekuasaan", d: "Kepentingan pribadi", key: "A" },
+      { r: 4, rName: "TEBAK & REBUTAN", no: 4, pts: 15, q: "Aku adalah kepala banteng. Aku berkaitan dengan …", a: "Musyawarah", b: "Keadilan", c: "Ketuhanan", d: "Kemanusiaan", key: "A" },
+      { r: 4, rName: "TEBAK & REBUTAN", no: 5, pts: 15, q: "Aku adalah padi dan kapas. Aku melambangkan …", a: "Keadilan sosial", b: "Persatuan", c: "Musyawarah", d: "Ketuhanan", key: "A" },
+      { r: 4, rName: "TEBAK & REBUTAN", no: 6, pts: 15, q: "REBUTAN: Sebutkan sila ke-3!", a: "Sila 1", b: "Sila 2", c: "Sila 3 (Persatuan Indonesia)", d: "Sila 4", key: "C" },
+      { r: 4, rName: "TEBAK & REBUTAN", no: 7, pts: 15, q: "REBUTAN: Lambang sila ke-4?", a: "Rantai", b: "Kepala banteng", c: "Bintang", d: "Padi dan kapas", key: "B" },
+      { r: 4, rName: "TEBAK & REBUTAN", no: 8, pts: 15, q: "REBUTAN: Dua contoh gotong royong di sekolah?", a: "Kerja bakti dan piket bersama", b: "Bertengkar", c: "Mencontek", d: "Mengejek", key: "A" },
+      { r: 4, rName: "TEBAK & REBUTAN", no: 9, pts: 15, q: "REBUTAN: Tujuan musyawarah?", a: "Mencapai mufakat", b: "Mencari musuh", c: "Memaksakan kehendak", d: "Menang sendiri", key: "A" },
+      { r: 4, rName: "TEBAK & REBUTAN", no: 10, pts: 15, q: "REBUTAN: Satu cara menjaga persatuan?", a: "Menghargai perbedaan", b: "Mengejek", c: "Memilih-milih teman", d: "Menyebar konflik", key: "A" },
+
+      // RONDE 5: FINAL BATTLE • HOTS (10 Soal)
+      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 1, pts: 25, q: "Mengapa Pancasila tidak cukup hanya dihafalkan?", a: "Harus diwujudkan dalam perilaku", b: "Agar mudah diuji", c: "Supaya menang kuis", d: "Hanya untuk buku", key: "A" },
+      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 2, pts: 25, q: "Jika kepentingan pribadi bertentangan dengan kepentingan bersama …", a: "Mencari solusi yang mengutamakan kepentingan bersama secara adil", b: "Selalu memilih diri sendiri", c: "Memaksa", d: "Menghindar", key: "A" },
+      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 3, pts: 25, q: "Mengapa toleransi penting di Indonesia?", a: "Karena masyarakat beragam", b: "Agar semua sama", c: "Agar tidak perlu aturan", d: "Agar tidak ada perbedaan", key: "A" },
+      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 4, pts: 25, q: "Cara menerapkan Pancasila di media sosial …", a: "Berkomentar santun dan menghargai perbedaan", b: "Menyebar hoaks", c: "Menghina", d: "Memprovokasi", key: "A" },
+      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 5, pts: 25, q: "Jika musyawarah belum mufakat …", a: "Mencari jalan tengah sesuai aturan", b: "Memaksa", c: "Bubar", d: "Bertengkar", key: "A" },
+      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 6, pts: 25, q: "Mengapa gotong royong memperkuat persatuan?", a: "Mendorong kerja sama dan kepedulian", b: "Membuat semua sama", c: "Menghilangkan perbedaan", d: "Membatasi orang", key: "A" },
+      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 7, pts: 25, q: "Jika terjadi konflik antarteman, sila ke-4 dapat diterapkan dengan …", a: "Dialog dan musyawarah", b: "Saling menyalahkan", c: "Menyebar masalah", d: "Memihak", key: "A" },
+      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 8, pts: 25, q: "Dampak ketidakadilan di sekolah?", a: "Muncul rasa tidak percaya dan konflik", b: "Semua kompak", c: "Prestasi pasti naik", d: "Masalah hilang", key: "A" },
+      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 9, pts: 25, q: "Bagaimana siswa menjadi teladan Pancasila?", a: "Jujur, toleran, adil, dan bekerja sama", b: "Hanya hafal sila", c: "Menang sendiri", d: "Menghindari semua kegiatan", key: "A" },
+      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 10, pts: 25, q: "Mengapa perbedaan budaya perlu dihargai?", a: "Kekayaan bangsa dan dapat memperkuat persatuan", b: "Agar budaya hilang", c: "Supaya semua sama", d: "Agar tidak ada diskusi", key: "A" }
+    ];
+
+    const challengeCards = [
+      { id: "DOUBLE", title: "DOUBLE POINT", desc: "Gandakan poin soal berikutnya.", pts: 20 },
+      { id: "SHIELD", title: "SHIELD", desc: "Jika salah, tidak mendapat penalti.", pts: 10 },
+      { id: "STEAL", title: "STEAL", desc: "Rebut soal saat tim lain salah.", pts: 15 },
+      { id: "SWITCH", title: "SWITCH", desc: "Tukar soal dengan tim lain.", pts: 10 },
+      { id: "TIME", title: "TIME ATTACK", desc: "Jawab dalam 10 detik, bonus +10.", pts: 20 },
+      { id: "NOTALK", title: "NO TALK", desc: "Peragakan pengamalan sila tanpa bicara.", pts: 20 },
+      { id: "YELYEL", title: "YEL-YEL PANCASILA", desc: "Buat yel-yel Pancasila selama 15 detik bersama tim.", pts: 20 },
+      { id: "5SILA", title: "5 SILA URUT", desc: "Sebutkan 5 sila urut tanpa melihat buku.", pts: 20 },
+      { id: "EXAMPLE", title: "3 CONTOH NYATA", desc: "Sebutkan 3 contoh pengamalan sila di sekolah.", pts: 20 },
+      { id: "WHY", title: "ALASAN LOGIS", desc: "Jelaskan alasan mengapa pengamalan sila ini penting.", pts: 20 }
+    ];
+
+    let teams = [
+      { id: 1, name: "Tim 1 - Garuda", captain: "Ahmad", scores: [0, 0, 0, 0, 0], bonus: 0 },
+      { id: 2, name: "Tim 2 - Merdeka", captain: "Siti", scores: [0, 0, 0, 0, 0], bonus: 0 },
+      { id: 3, name: "Tim 3 - Bhinneka", captain: "Budi", scores: [0, 0, 0, 0, 0], bonus: 0 },
+      { id: 4, name: "Tim 4 - Nusantara", captain: "Dewi", scores: [0, 0, 0, 0, 0], bonus: 0 },
+      { id: 5, name: "Tim 5 - Pancasila", captain: "Rian", scores: [0, 0, 0, 0, 0], bonus: 0 }
+    ];
+
+    let currentQuestionIdx = 0;
+    let currentActiveRound = 1;
+    let timerDuration = 15;
+    let timerRemaining = 15;
+    let timerInterval = null;
+    let selectedTeamForModal = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+
+    // --- AUTENTIKASI DENGAN BACKEND GAS ---
+    async function handleLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('usernameInput').value;
+      const p = document.getElementById('passwordInput').value;
+
+      showLoading(true, "Memverifikasi Kredensial Guru...");
+
+      // Jika URL masih placeholder, fallback ke verifikasi lokal untuk kemudahan testing
+      if (APP_SCRIPT_URL.includes("YOUR_DEPLOYMENT_ID")) {
+        setTimeout(() => {
+          showLoading(false);
+          if (u === "guru_pancasila" && p === "merdeka123") {
+            sessionToken = "local_dev_token";
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+            showToast("Selamat datang Guru! (Mode Lokal)", "success");
+            switchTab('home');
+            renderScoreboard();
+            renderTeamSettings();
+            lucide.createIcons();
+          } else {
+            showToast("Username atau Password salah!", "error");
+          }
+        }, 500);
+        return;
+      }
+
+      try {
+        const res = await fetch(APP_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'login', username: u, password: p })
+        });
+        const data = await res.json();
+        showLoading(false);
+
+        if (data.success) {
+          sessionToken = data.data.session_token;
+          document.getElementById('loginSection').classList.add('hidden');
+          document.getElementById('appSection').classList.remove('hidden');
+          showToast(`Selamat datang ${data.data.full_name}!`, "success");
+          
+          if (data.data.questions && data.data.questions.length > 0) {
+            rawQuestions = data.data.questions;
+          }
+          switchTab('home');
+          renderScoreboard();
+          renderTeamSettings();
+          lucide.createIcons();
+        } else {
+          showToast(data.message || "Login gagal!", "error");
+        }
+      } catch (err) {
+        showLoading(false);
+        showToast("Gagal terhubung ke Google Apps Script: " + err.message, "error");
+      }
+    }
+
+    async function saveGameToGAS() {
+      if (!sessionToken) {
+        showToast("Sesi tidak valid. Silakan login kembali.", "error");
+        return;
+      }
+
+      showLoading(true, "Menyimpan Hasil Pertandingan ke Google Sheets...");
+
+      const payload = {
+        action: 'saveGameSession',
+        session_token: sessionToken,
+        className: document.getElementById('settingClassName').value,
+        teacherName: document.getElementById('settingTeacherName').value,
+        teams: teams
+      };
+
+      if (APP_SCRIPT_URL.includes("YOUR_DEPLOYMENT_ID")) {
+        setTimeout(() => {
+          showLoading(false);
+          showToast("Hasil disimpan secara lokal (Placeholder URL aktif)", "info");
+        }, 600);
+        return;
+      }
+
+      try {
+        const res = await fetch(APP_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        showLoading(false);
+
+        if (data.success) {
+          showToast("Rekap Nilai Berhasil Disimpan ke Google Spreadsheet!", "success");
+        } else {
+          showToast(data.message || "Gagal menyimpan data!", "error");
+        }
+      } catch (err) {
+        showLoading(false);
+        showToast("Terjadi kesalahan jaringan: " + err.message, "error");
+      }
+    }
+
+    // --- STYLE SWITCHER LOGIC ---
+    function toggleStylePanel() {
+      const panel = document.getElementById('stylePanel');
+      panel.classList.toggle('translate-x-full');
+    }
+
+    function setPrimaryColor(color, hoverColor) {
+      document.documentElement.style.setProperty('--primary-color', color);
+      document.documentElement.style.setProperty('--primary-hover', hoverColor);
+      showToast(`Warna utama diperbarui ke ${color}`, "info");
+    }
+
+    function setThemeMode(mode) {
+      ['btnThemeLight', 'btnThemeDark', 'btnThemeSystem'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.className = "p-3 bg-slate-800 border border-slate-700 rounded-xl flex flex-col items-center gap-2 text-slate-300 transition hover:border-amber-500";
+      });
+
+      if (mode === 'light') {
+        document.getElementById('btnThemeLight').className = "p-3 bg-slate-800 border-2 border-amber-500 rounded-xl flex flex-col items-center gap-2 text-amber-400 font-bold transition";
+        setScreenContrast('light');
+      } else {
+        document.getElementById('btnThemeDark').className = "p-3 bg-slate-800 border-2 border-amber-500 rounded-xl flex flex-col items-center gap-2 text-amber-400 font-bold transition";
+        setScreenContrast('slate');
+      }
+    }
+
+    function setScreenContrast(preset) {
+      ['radioSlate', 'radioBlack', 'radioLight', 'radioWarm'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (id === 'radioSlate') btn.className = "p-3.5 bg-[#0d1322] border border-slate-800 rounded-2xl flex items-center gap-3 text-white font-mono text-xs font-bold transition hover:border-amber-500";
+        if (id === 'radioBlack') btn.className = "p-3.5 bg-black border border-slate-800 rounded-2xl flex items-center gap-3 text-white font-mono text-xs font-bold transition hover:border-amber-500";
+        if (id === 'radioLight') btn.className = "p-3.5 bg-[#f1f5f9] border border-slate-300 rounded-2xl flex items-center gap-3 text-slate-900 font-mono text-xs font-bold transition hover:border-amber-500";
+        if (id === 'radioWarm') btn.className = "p-3.5 bg-[#fef08a] border border-amber-300 rounded-2xl flex items-center gap-3 text-[#78350f] font-mono text-xs font-bold transition hover:border-amber-500";
+      });
+
+      document.getElementById('circleSlate').innerHTML = '';
+      document.getElementById('circleBlack').innerHTML = '';
+      document.getElementById('circleLight').innerHTML = '';
+      document.getElementById('circleWarm').innerHTML = '';
+
+      if (preset === 'slate') {
+        document.body.className = "screen-slate min-h-screen antialiased flex flex-col selection:bg-red-500 selection:text-white";
+        document.getElementById('radioSlate').className = "p-3.5 bg-[#0d1322] border-2 border-amber-500 rounded-2xl flex items-center gap-3 text-white font-mono text-xs font-bold transition shadow-lg";
+        document.getElementById('circleSlate').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span>';
+      } else if (preset === 'black') {
+        document.body.className = "screen-black min-h-screen antialiased flex flex-col selection:bg-red-500 selection:text-white";
+        document.getElementById('radioBlack').className = "p-3.5 bg-black border-2 border-amber-500 rounded-2xl flex items-center gap-3 text-white font-mono text-xs font-bold transition shadow-lg";
+        document.getElementById('circleBlack').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span>';
+      } else if (preset === 'light') {
+        document.body.className = "screen-light min-h-screen antialiased flex flex-col selection:bg-red-500 selection:text-white";
+        document.getElementById('radioLight').className = "p-3.5 bg-[#f1f5f9] border-2 border-amber-500 rounded-2xl flex items-center gap-3 text-slate-900 font-mono text-xs font-bold transition shadow-lg";
+        document.getElementById('circleLight').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span>';
+      } else if (preset === 'warm') {
+        document.body.className = "screen-warm min-h-screen antialiased flex flex-col selection:bg-red-500 selection:text-white";
+        document.getElementById('radioWarm').className = "p-3.5 bg-[#fef08a] border-2 border-amber-600 rounded-2xl flex items-center gap-3 text-[#78350f] font-mono text-xs font-bold transition shadow-lg";
+        document.getElementById('circleWarm').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-600"></span>';
+      }
+    }
+
+    function setFontScale(scaleClass) {
+      document.documentElement.className = scaleClass;
+      ['btnScaleNormal', 'btnScaleLarge', 'btnScaleXLarge'].forEach(b => {
+        document.getElementById(b).className = "flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
+      });
+      if(scaleClass === 'scale-normal') document.getElementById('btnScaleNormal').className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950";
+      if(scaleClass === 'scale-large') document.getElementById('btnScaleLarge').className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950";
+      if(scaleClass === 'scale-xlarge') document.getElementById('btnScaleXLarge').className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950";
+    }
+
+    function resetCustomizer() {
+      setPrimaryColor('#dc2626', '#b91c1c');
+      setThemeMode('dark');
+      setFontScale('scale-normal');
+      showToast("Tampilan berhasil di-reset ke standar default!", "info");
+    }
+
+    function playSurpriseChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'triangle';
+        osc1.frequency.setValueAtTime(523.25, now);
+        osc1.frequency.setValueAtTime(659.25, now + 0.12);
+        osc1.frequency.setValueAtTime(1046.50, now + 0.36);
+        gain1.gain.setValueAtTime(0.3, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.9);
+      } catch (e) {}
+    }
+
+    function startGameFromLanding() {
+      switchTab('game');
+      showRoundIntro(1);
+    }
+
+    function confirmLogout() {
+      closeModal('modalLogout');
+      clearInterval(timerInterval);
+      sessionToken = null;
+      document.getElementById('appSection').classList.add('hidden');
+      document.getElementById('loginSection').classList.remove('hidden');
+      showToast("Anda telah keluar.", "info");
+    }
+
+    function switchTab(tabId) {
+      ['home', 'game', 'scoreboard', 'settings'].forEach(t => {
+        const view = document.getElementById('view' + capitalize(t));
+        const btn = document.getElementById('tabBtn' + (t === 'scoreboard' ? 'Score' : capitalize(t)));
+        if (t === tabId) {
+          view.classList.remove('hidden');
+          btn.className = "px-3 py-1.5 rounded-lg btn-primary text-white flex items-center gap-1.5";
+        } else {
+          view.classList.add('hidden');
+          btn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center gap-1.5";
+        }
+      });
+      if (tabId === 'scoreboard') renderScoreboard();
+      lucide.createIcons();
+    }
+
+    function capitalize(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    function showRoundIntro(rNum) {
+      currentActiveRound = rNum;
+      const meta = roundMetadata[rNum];
+      document.getElementById('introRoundBadge').innerText = `RONDE ${rNum}`;
+      document.getElementById('introRoundTitle').innerText = meta.title;
+      document.getElementById('introRoundDesc').innerText = meta.desc;
+      openModal('modalRoundIntro');
+      lucide.createIcons();
+    }
+
+    function startRoundFromIntro() {
+      closeModal('modalRoundIntro');
+      switchTab('game');
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const q = rawQuestions[currentQuestionIdx];
+      if (!q) return;
+
+      if (q.r !== currentActiveRound) {
+        clearInterval(timerInterval);
+        showRoundEndRecap(currentActiveRound, () => {
+          showRoundIntro(q.r);
+        });
+        return;
+      }
+
+      document.getElementById('roundBadge').innerText = `RONDE ${q.r}`;
+      document.getElementById('roundTitle').innerText = `${q.rName} (${q.pts} Poin)`;
+      document.getElementById('questionProgress').innerText = `Soal ${q.no}`;
+      document.getElementById('currentQuestionText').innerText = q.q;
+      document.getElementById('currentPointsAward').innerText = q.pts;
+
+      document.getElementById('timeOutLockBanner').classList.add('hidden');
+      document.getElementById('currentQuestionText').classList.remove('blur-lock');
+      document.getElementById('optionsGrid').classList.remove('blur-lock');
+
+      document.getElementById('answerKeyBanner').classList.add('hidden');
+      const correctText = q.key === 'A' ? q.a : (q.key === 'B' ? q.b : (q.key === 'C' ? q.c : q.d));
+      document.getElementById('answerKeyText').innerText = `${q.key}. ${correctText}`;
+
+      const grid = document.getElementById('optionsGrid');
+      grid.innerHTML = '';
+      
+      const opts = [
+        { label: 'A', text: q.a },
+        { label: 'B', text: q.b }
+      ];
+      if (q.c !== '—') opts.push({ label: 'C', text: q.c });
+      if (q.d !== '—') opts.push({ label: 'D', text: q.d });
+
+      opts.forEach(opt => {
+        const btn = document.createElement('div');
+        btn.className = "p-4 bg-slate-900/90 border border-slate-700/80 rounded-2xl flex items-center gap-3.5 cursor-pointer card-bg";
+        btn.innerHTML = `
+          <span class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 font-game font-bold flex items-center justify-center text-amber-400">${opt.label}</span>
+          <span class="text-sm font-semibold">${opt.text}</span>
+        `;
+        grid.appendChild(btn);
+      });
+
+      const pointBtnContainer = document.getElementById('teamQuickPointButtons');
+      pointBtnContainer.innerHTML = '';
+      teams.forEach((tm, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 shadow-sm";
+        btn.innerHTML = `<span>${tm.name.split(' - ')[0]}</span> <span class="text-emerald-400">+${q.pts}</span>`;
+        btn.onclick = () => awardPointToTeam(idx, q.r, q.pts);
+        pointBtnContainer.appendChild(btn);
+      });
+
+      resetTimer();
+      startTimer();
+    }
+
+    function toggleAnswerKey() {
+      document.getElementById('currentQuestionText').classList.remove('blur-lock');
+      document.getElementById('optionsGrid').classList.remove('blur-lock');
+      document.getElementById('timeOutLockBanner').classList.add('hidden');
+      const banner = document.getElementById('answerKeyBanner');
+      banner.classList.remove('hidden');
+      showToast("Soal dibuka & Kunci Jawaban ditampilkan!", "info");
+      lucide.createIcons();
+    }
+
+    function prevQuestion() {
+      if (currentQuestionIdx > 0) {
+        currentQuestionIdx--;
+        renderQuestion();
+      }
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIdx < rawQuestions.length - 1) {
+        currentQuestionIdx++;
+        const isSurpriseTrigger = (currentQuestionIdx % 4 === 0) || Math.random() < 0.20;
+        if (isSurpriseTrigger) {
+          triggerSurpriseCard(false, () => {
+            renderQuestion();
+          });
+        } else {
+          renderQuestion();
+        }
+      } else {
+        showRoundEndRecap(5, () => {
+          showToast("Seluruh pertandingan selesai!", "success");
+          switchTab('scoreboard');
+        });
+      }
+    }
+
+    function awardPointToTeam(teamIdx, roundNum, pts) {
+      teams[teamIdx].scores[roundNum - 1] += pts;
+      confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+      showToast(`+${pts} Poin ke ${teams[teamIdx].name}!`, "success");
+      renderScoreboard();
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      const display = document.getElementById('timerDisplay');
+      const startBtn = document.getElementById('btnTimerStart');
+
+      startBtn.innerText = "Jeda";
+      startBtn.onclick = pauseTimer;
+
+      timerInterval = setInterval(() => {
+        if (timerRemaining > 0) {
+          timerRemaining--;
+          display.innerText = `${timerRemaining}s`;
+        } else {
+          clearInterval(timerInterval);
+          startBtn.innerText = "Habis";
+          display.innerText = "0s";
+          document.getElementById('currentQuestionText').classList.add('blur-lock');
+          document.getElementById('optionsGrid').classList.add('blur-lock');
+          document.getElementById('timeOutLockBanner').classList.remove('hidden');
+          showToast("WAKTU HABIS! JAWABAN DIKUNCI 🔒", "error");
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timerInterval);
+      const startBtn = document.getElementById('btnTimerStart');
+      startBtn.innerText = "Lanjut";
+      startBtn.onclick = startTimer;
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerRemaining = timerDuration;
+      const display = document.getElementById('timerDisplay');
+      display.innerText = `${timerRemaining}s`;
+    }
+
+    function changeGlobalTimer(val) {
+      timerDuration = parseInt(val, 10);
+      resetTimer();
+      startTimer();
+    }
+
+    function showRoundEndRecap(rNum, onContinue) {
+      document.getElementById('recapRoundTitle').innerText = `AKHIR RONDE ${rNum}`;
+      const container = document.getElementById('roundLeaderList');
+      container.innerHTML = '';
+
+      const roundSorted = [...teams].sort((a, b) => b.scores[rNum - 1] - a.scores[rNum - 1]);
+
+      roundSorted.forEach((t, i) => {
+        const item = document.createElement('div');
+        item.className = "p-3 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-between";
+        item.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-slate-800 font-bold text-xs flex items-center justify-center text-amber-400">#${i + 1}</span>
+            <span class="text-sm font-bold">${t.name}</span>
+          </div>
+          <span class="text-sm font-black text-amber-400">+${t.scores[rNum - 1]} Poin</span>
+        `;
+        container.appendChild(item);
+      });
+
+      openModal('modalRoundEndRecap');
+      const continueBtn = document.querySelector('#modalRoundEndRecap button');
+      continueBtn.onclick = () => {
+        closeModal('modalRoundEndRecap');
+        if (onContinue) onContinue();
+      };
+      lucide.createIcons();
+    }
+
+    function triggerSurpriseCard(isManual = false, onComplete = null) {
+      pauseTimer();
+      playSurpriseChime();
+
+      const randomCard = challengeCards[Math.floor(Math.random() * challengeCards.length)];
+      document.getElementById('cardEventTitle').innerText = randomCard.title;
+      document.getElementById('cardEventDesc').innerText = randomCard.desc;
+      document.getElementById('cardEventPts').innerText = randomCard.pts;
+
+      const btnContainer = document.getElementById('cardTeamSelectButtons');
+      btnContainer.innerHTML = '';
+      teams.forEach((tm, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "px-3 py-2 bg-slate-800 hover:bg-amber-600 border border-slate-700 rounded-xl text-xs font-bold text-slate-200";
+        btn.innerText = tm.name;
+        btn.onclick = () => {
+          teams[idx].bonus += randomCard.pts;
+          closeModal('modalRandomCard');
+          confetti({ particleCount: 40, spread: 50 });
+          showToast(`+${randomCard.pts} poin bonus untuk ${tm.name}!`, "success");
+          renderScoreboard();
+          if (onComplete) onComplete();
+        };
+        btnContainer.appendChild(btn);
+      });
+
+      openModal('modalRandomCard');
+      lucide.createIcons();
+    }
+
+    function renderScoreboard() {
+      const tbody = document.getElementById('scoreboardTableBody');
+      tbody.innerHTML = '';
+
+      const computedTeams = teams.map(t => {
+        const total = t.scores.reduce((acc, curr) => acc + curr, 0) + t.bonus;
+        return { ...t, total };
+      }).sort((a, b) => b.total - a.total);
+
+      computedTeams.forEach((t, rank) => {
+        const originalIndex = teams.findIndex(tm => tm.id === t.id);
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-700/40 transition";
+        
+        let rankBadge = `<span class="font-bold text-slate-400">#${rank + 1}</span>`;
+        if (rank === 0) rankBadge = `<span class="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-lg font-bold">🥇 Juara 1</span>`;
+
+        tr.innerHTML = `
+          <td class="py-4 px-6">${rankBadge}</td>
+          <td class="py-4 px-6">
+            <div class="font-bold">${t.name}</div>
+            <div class="text-xs text-slate-400 text-light-muted">Kapten: ${t.captain}</div>
+          </td>
+          <td class="py-4 px-4 text-center font-mono">${t.scores[0]}</td>
+          <td class="py-4 px-4 text-center font-mono">${t.scores[1]}</td>
+          <td class="py-4 px-4 text-center font-mono">${t.scores[2]}</td>
+          <td class="py-4 px-4 text-center font-mono">${t.scores[3]}</td>
+          <td class="py-4 px-4 text-center font-mono">${t.scores[4]}</td>
+          <td class="py-4 px-4 text-center font-mono ${t.bonus >= 0 ? 'text-emerald-400' : 'text-red-400'}">${t.bonus > 0 ? '+' : ''}${t.bonus}</td>
+          <td class="py-4 px-6 text-right font-black text-amber-400 text-lg">${t.total}</td>
+          <td class="py-4 px-6 text-center">
+            <button onclick="openAdjustModal(${originalIndex})" class="p-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    function openAdjustModal(teamIdx) {
+      selectedTeamForModal = teamIdx;
+      document.getElementById('modalTeamNameDisplay').innerText = teams[teamIdx].name;
+      openModal('modalScoreAdjust');
+    }
+
+    function applyScoreAdjustment(multiplier) {
+      const val = parseInt(document.getElementById('manualPointInput').value, 10) || 0;
+      teams[selectedTeamForModal].bonus += (val * multiplier);
+      closeModal('modalScoreAdjust');
+      renderScoreboard();
+      showToast("Poin diperbarui!", "success");
+    }
+
+    function renderTeamSettings() {
+      const list = document.getElementById('teamsConfigList');
+      list.innerHTML = '';
+      teams.forEach((t, i) => {
+        const row = document.createElement('div');
+        row.className = "grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-900 rounded-xl border border-slate-700";
+        row.innerHTML = `
+          <div>
+            <span class="text-[11px] text-slate-400 font-semibold block mb-1">Nama Tim ${t.id}</span>
+            <input type="text" id="teamNameInput_${i}" value="${t.name}" class="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs" />
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 font-semibold block mb-1">Kapten Tim</span>
+            <input type="text" id="teamCaptainInput_${i}" value="${t.captain}" class="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs" />
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function saveTeamSettings() {
+      teams.forEach((t, i) => {
+        t.name = document.getElementById(`teamNameInput_${i}`).value;
+        t.captain = document.getElementById(`teamCaptainInput_${i}`).value;
+      });
+      renderQuestion();
+      renderScoreboard();
+      showToast("Data tim berhasil disimpan!", "success");
+    }
+
+    // --- CLIENT-SIDE EXPORTS ---
+    function exportToExcel() {
+      showLoading(true, "Membuat file Excel...");
+      setTimeout(() => {
+        const computed = teams.map((t, idx) => ({
+          Peringkat: idx + 1,
+          "Nama Tim": t.name,
+          "Kapten": t.captain,
+          "Ronde 1 (PG)": t.scores[0],
+          "Ronde 2 (B/S)": t.scores[1],
+          "Ronde 3 (Kasus)": t.scores[2],
+          "Ronde 4 (Rebutan)": t.scores[3],
+          "Ronde 5 (HOTS)": t.scores[4],
+          "Bonus": t.bonus,
+          "Total Skor": t.scores.reduce((a, b) => a + b, 0) + t.bonus
+        })).sort((a, b) => b["Total Skor"] - a["Total Skor"]);
+
+        const ws = XLSX.utils.json_to_sheet(computed);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Rekap Pancasila Game");
+        XLSX.writeFile(wb, `Laporan_Pancasila_Game_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showLoading(false);
+        showToast("File Excel diunduh!", "success");
+      }, 500);
+    }
+
+    function exportToPDF() {
+      showLoading(true, "Menyusun Laporan PDF...");
+      setTimeout(() => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const className = document.getElementById('settingClassName').value;
+        const teacherName = document.getElementById('settingTeacherName').value;
+
+        doc.setFontSize(16);
+        doc.text("LAPORAN REKAPITULASI NILAI PANCASILA GAME", 14, 18);
+        doc.setFontSize(10);
+        doc.text(`Kelas / Sesi: ${className}`, 14, 25);
+        doc.text(`Fasilitator Guru: ${teacherName}`, 14, 30);
+        doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 35);
+
+        const tableData = teams.map((t, idx) => [
+          idx + 1, t.name, t.captain, t.scores[0], t.scores[1], t.scores[2], t.scores[3], t.scores[4], t.bonus, t.scores.reduce((a, b) => a + b, 0) + t.bonus
+        ]).sort((a, b) => b[9] - a[9]);
+
+        doc.autoTable({
+          startY: 40,
+          head: [['No', 'Tim', 'Kapten', 'R1', 'R2', 'R3', 'R4', 'R5', 'Bonus', 'Total']],
+          body: tableData
+        });
+        doc.save(`Laporan_Nilai_Pancasila_${new Date().toISOString().slice(0, 10)}.pdf`);
+        showLoading(false);
+        showToast("Laporan PDF diunduh!", "success");
+      }, 500);
+    }
+
+    function generateCertificate() {
+      showLoading(true, "Mencetak Sertifikat...");
+      setTimeout(() => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape', format: 'a4' });
+        const sorted = [...teams].sort((a, b) => (b.scores.reduce((x, y) => x + y, 0) + b.bonus) - (a.scores.reduce((x, y) => x + y, 0) + a.bonus));
+        const champion = sorted[0];
+        const teacherName = document.getElementById('settingTeacherName').value;
+
+        doc.setLineWidth(4);
+        doc.setDrawColor(220, 38, 38);
+        doc.rect(10, 10, 277, 190);
+        doc.setLineWidth(1);
+        doc.setDrawColor(245, 158, 11);
+        doc.rect(14, 14, 269, 182);
+
+        doc.setFontSize(26);
+        doc.setTextColor(220, 38, 38);
+        doc.text("SERTIFIKAT PENGHARGAAN", 148, 45, { align: 'center' });
+
+        doc.setFontSize(16);
+        doc.setTextColor(50, 50, 50);
+        doc.text("DIBERIKAN SEBAGAI", 148, 60, { align: 'center' });
+
+        doc.setFontSize(22);
+        doc.setTextColor(245, 158, 11);
+        doc.text("★ JUARA PANCASILA CHALLENGE ★", 148, 75, { align: 'center' });
+
+        doc.setFontSize(14);
+        doc.setTextColor(70, 70, 70);
+        doc.text("Dianugerahkan dengan bangga kepada:", 148, 95, { align: 'center' });
+
+        doc.setFontSize(24);
+        doc.setTextColor(20, 20, 20);
+        doc.text(champion.name.toUpperCase(), 148, 112, { align: 'center' });
+
+        doc.setFontSize(12);
+        doc.setFont('italic');
+        doc.setTextColor(90, 90, 90);
+        doc.text('"Pancasila bukan hanya untuk dihafalkan,', 148, 130, { align: 'center' });
+        doc.text('tetapi untuk diwujudkan dalam kehidupan sehari-hari."', 148, 137, { align: 'center' });
+
+        doc.setFont('normal');
+        doc.setFontSize(12);
+        doc.setTextColor(50, 50, 50);
+        doc.text(`Guru Pembimbing: ${teacherName}`, 220, 168, { align: 'center' });
+        doc.line(180, 172, 260, 172);
+
+        doc.save(`Sertifikat_${champion.name.replace(/\s+/g, '_')}.pdf`);
+        showLoading(false);
+        showToast("Sertifikat Juara diunduh!", "success");
+      }, 500);
+    }
+
+    // --- UI HELPERS ---
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      document.getElementById(id).classList.add('flex');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      document.getElementById(id).classList.remove('flex');
+    }
+
+    function showLoading(show, text = "Memproses...") {
+      const overlay = document.getElementById('loadingOverlay');
+      document.getElementById('loadingText').innerText = text;
+      if (show) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+      } else {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+      }
+    }
+
+    function showToast(msg, type = "info") {
+      const toast = document.getElementById('toast');
+      const text = document.getElementById('toastMessage');
+      const icon = document.getElementById('toastIcon');
+
+      text.innerText = msg;
+      if (type === "success") {
+        icon.className = "text-emerald-400";
+        icon.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i>`;
+      } else if (type === "error") {
+        icon.className = "text-red-400";
+        icon.innerHTML = `<i data-lucide="alert-circle" class="w-5 h-5"></i>`;
+      } else {
+        icon.className = "text-amber-400";
+        icon.innerHTML = `<i data-lucide="info" class="w-5 h-5"></i>`;
+      }
+
+      toast.classList.remove('hidden');
+      toast.classList.add('flex');
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+      }, 3000);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else if (document.exitFullscreen) document.exitFullscreen();
+    }
+  </script>
+</body>
+</html>
