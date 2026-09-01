@@ -625,6 +625,83 @@
           </table>
         </div>
       </div>
+      <!-- ================= MODAL EDIT SOAL ================= -->
+  <div id="modalEditQuestion" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div class="card-bg bg-slate-800 border border-slate-700 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-3.5 text-left">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="edit-3" class="w-4 h-4 text-amber-400"></i> Edit Butir Soal
+        </h3>
+        <button onclick="closeModal('modalEditQuestion')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="editQuestionId" />
+
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-300 uppercase mb-1">Tingkat Kelas</label>
+          <select id="editGrade" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-bold">
+            <option value="SEMUA">Semua Kelas</option>
+            <option value="7">Kelas 7 SMP</option>
+            <option value="8">Kelas 8 SMP</option>
+            <option value="9">Kelas 9 SMP</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-300 uppercase mb-1">Topik Materi</label>
+          <input type="text" id="editTopic" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-bold text-slate-300 uppercase mb-1">Pilih Ronde Permainan</label>
+        <select id="editRoundNum" onchange="syncEditRoundRules()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-semibold">
+          <option value="1">Ronde 1 - PILIHAN GANDA (Min. 10 Poin)</option>
+          <option value="2">Ronde 2 - BENAR ATAU SALAH (Min. 10 Poin)</option>
+          <option value="3">Ronde 3 - DETEKTIF KASUS (Min. 15 Poin)</option>
+          <option value="4">Ronde 4 - TEBAK & REBUTAN (Min. 15 Poin)</option>
+          <option value="5">Ronde 5 - FINAL BATTLE (HOTS) (Min. 25 Poin)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-bold text-slate-300 uppercase mb-1">Teks Pertanyaan</label>
+        <textarea id="editQuestionText" rows="2" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <input type="text" id="editOptA" class="px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs" placeholder="Opsi A (Wajib)" />
+        <input type="text" id="editOptB" class="px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs" placeholder="Opsi B (Wajib)" />
+        <input type="text" id="editOptC" class="px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs" placeholder="Opsi C" />
+        <input type="text" id="editOptD" class="px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs" placeholder="Opsi D" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-300 uppercase mb-1">Kunci Jawaban</label>
+          <select id="editKey" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-bold">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-300 uppercase mb-1">Poin Soal</label>
+          <input type="number" id="editPoints" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-bold" />
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2 border-t border-slate-700">
+        <button onclick="closeModal('modalEditQuestion')" class="flex-1 py-2.5 bg-slate-700 text-slate-300 font-bold rounded-xl text-xs">Batal</button>
+        <button onclick="submitUpdateQuestion()" class="flex-1 py-2.5 btn-primary font-bold text-white rounded-xl text-xs shadow-lg flex items-center justify-center gap-1.5">
+          <i data-lucide="check" class="w-4 h-4"></i> Simpan Perubahan
+        </button>
+      </div>
+    </div>
+  </div>
 
       <!-- ================= MODAL PRE-GAME SETUP (GRADE & TOPIC FILTER) ================= -->
       <div id="modalPreGameSetup" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
@@ -869,91 +946,9 @@
       5: { title: "FINAL BATTLE (HOTS)", desc: "Babak penentuan! Soal analisis kritis tingkat tinggi. Poin: 25 per soal." }
     };
 
-    // 60 Bank Soal Lengkap
-    let rawQuestions = [
-      // RONDE 1: PILIHAN GANDA (20 Soal)
-      { r: 1, rName: "PILIHAN GANDA", no: 1, pts: 10, q: "Apa bunyi sila pertama Pancasila?", a: "Ketuhanan Yang Maha Esa", b: "Persatuan Indonesia", c: "Keadilan sosial", d: "Kemanusiaan yang adil", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 2, pts: 10, q: "Lambang sila kedua adalah …", a: "Pohon beringin", b: "Rantai", c: "Bintang", d: "Kepala banteng", key: "B" },
-      { r: 1, rName: "PILIHAN GANDA", no: 3, pts: 10, q: "Pohon beringin merupakan lambang sila …", a: "1", b: "2", c: "3", d: "5", key: "C" },
-      { r: 1, rName: "PILIHAN GANDA", no: 4, pts: 10, q: "Sila keempat menekankan pentingnya …", a: "Musyawarah", b: "Persaingan", c: "Kekuasaan", d: "Kepentingan pribadi", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 5, pts: 10, q: "Lambang sila kelima adalah …", a: "Bintang", b: "Padi dan kapas", c: "Rantai", d: "Pohon beringin", key: "B" },
-      { r: 1, rName: "PILIHAN GANDA", no: 6, pts: 10, q: "Dasar negara Indonesia adalah …", a: "UUD 1945", b: "Pancasila", c: "Bhinneka Tunggal Ika", d: "Proklamasi", key: "B" },
-      { r: 1, rName: "PILIHAN GANDA", no: 7, pts: 10, q: "Bhinneka Tunggal Ika berarti …", a: "Berbeda-beda tetapi tetap satu", b: "Semua harus sama", c: "Berbeda berarti terpisah", d: "Bersatu karena sama", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 8, pts: 10, q: "Contoh sila pertama di sekolah …", a: "Menghormati teman beribadah", b: "Memilih ketua", c: "Kerja bakti", d: "Membagi tugas", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 9, pts: 10, q: "Contoh sila kedua …", a: "Menolong tanpa membeda-bedakan", b: "Memaksakan pendapat", c: "Menjauhi teman", d: "Mengejek", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 10, pts: 10, q: "Contoh sila ketiga …", a: "Menghargai keberagaman", b: "Berbuat curang", c: "Menyebar kebencian", d: "Mementingkan diri", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 11, pts: 10, q: "Contoh sila keempat …", a: "Musyawarah", b: "Mengejek", c: "Memaksa", d: "Diam", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 12, pts: 10, q: "Contoh sila kelima …", a: "Bersikap adil", b: "Memilih teman tertentu", c: "Menyela", d: "Mendominasi", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 13, pts: 10, q: "Pancasila ditetapkan sebagai dasar negara pada …", a: "17 Agustus 1945", b: "18 Agustus 1945", c: "1 Juni 1945", d: "22 Juni 1945", key: "B" },
-      { r: 1, rName: "PILIHAN GANDA", no: 14, pts: 10, q: "Tokoh yang memperkenalkan istilah Pancasila pada 1 Juni 1945 adalah …", a: "Soekarno", b: "Moh. Hatta", c: "Soepomo", d: "Moh. Yamin", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 15, pts: 10, q: "Sidang pertama BPUPKI membahas …", a: "Dasar negara", b: "Pemilu", c: "Rapor", d: "Otonomi daerah", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 16, pts: 10, q: "Sikap yang menjaga persatuan adalah …", a: "Menghargai perbedaan", b: "Mengejek budaya lain", c: "Memaksakan adat", d: "Membuat kelompok eksklusif", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 17, pts: 10, q: "Musyawarah bertujuan mencapai …", a: "Mufakat", b: "Kemenangan pribadi", c: "Perdebatan", d: "Paksaan", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 18, pts: 10, q: "Gotong royong paling dekat dengan nilai …", a: "Kerja sama", b: "Egoisme", c: "Persaingan", d: "Diskriminasi", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 19, pts: 10, q: "Pancasila harus diterapkan …", a: "Dalam kehidupan sehari-hari", b: "Hanya saat upacara", c: "Hanya di sekolah", d: "Hanya oleh pejabat", key: "A" },
-      { r: 1, rName: "PILIHAN GANDA", no: 20, pts: 10, q: "Sikap adil berarti …", a: "Memberikan hak secara tepat", b: "Selalu menyamakan semua", c: "Membela teman sendiri", d: "Mengutamakan yang kuat", key: "A" },
-
-      // RONDE 2: BENAR / SALAH (10 Soal)
-      { r: 2, rName: "BENAR / SALAH", no: 1, pts: 10, q: "Menghormati teman yang berbeda agama sesuai sila pertama.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
-      { r: 2, rName: "BENAR / SALAH", no: 2, pts: 10, q: "Memaksakan pendapat merupakan musyawarah yang baik.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "B" },
-      { r: 2, rName: "BENAR / SALAH", no: 3, pts: 10, q: "Gotong royong dapat memperkuat persatuan.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
-      { r: 2, rName: "BENAR / SALAH", no: 4, pts: 10, q: "Pancasila hanya berlaku di lingkungan sekolah.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "B" },
-      { r: 2, rName: "BENAR / SALAH", no: 5, pts: 10, q: "Menghargai budaya daerah lain sesuai nilai persatuan.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
-      { r: 2, rName: "BENAR / SALAH", no: 6, pts: 10, q: "Musyawarah berarti semua orang harus setuju sejak awal.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "B" },
-      { r: 2, rName: "BENAR / SALAH", no: 7, pts: 10, q: "Bersikap adil merupakan pengamalan sila kelima.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
-      { r: 2, rName: "BENAR / SALAH", no: 8, pts: 10, q: "Perbedaan dapat menjadi kekuatan bangsa.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
-      { r: 2, rName: "BENAR / SALAH", no: 9, pts: 10, q: "Mengejek perbedaan sesuai dengan Pancasila.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "B" },
-      { r: 2, rName: "BENAR / SALAH", no: 10, pts: 10, q: "Keputusan bersama perlu dilaksanakan dengan tanggung jawab.", a: "BENAR", b: "SALAH", c: "—", d: "—", key: "A" },
-
-      // RONDE 3: DETEKTIF KASUS (10 Soal)
-      { r: 3, rName: "DETEKTIF KASUS", no: 1, pts: 15, q: "Teman berbeda agama sedang beribadah dan diganggu. Apa tindakanmu?", a: "Menghentikan gangguan", b: "Ikut mengganggu", c: "Merekam", d: "Membiarkan", key: "A" },
-      { r: 3, rName: "DETEKTIF KASUS", no: 2, pts: 15, q: "Teman diejek karena bahasa daerahnya. Sikap tepat?", a: "Menghargai dan menghentikan ejekan", b: "Ikut tertawa", c: "Menyebarkan video", d: "Menjauhi", key: "A" },
-      { r: 3, rName: "DETEKTIF KASUS", no: 3, pts: 15, q: "Kelompokmu berbeda pendapat. Langkah terbaik?", a: "Musyawarah", b: "Bertengkar", c: "Memaksa", d: "Meninggalkan kelompok", key: "A" },
-      { r: 3, rName: "DETEKTIF KASUS", no: 4, pts: 15, q: "Pembagian tugas tidak adil. Apa yang dilakukan?", a: "Membicarakan dan membagi sesuai kesepakatan", b: "Diam", c: "Menyalahkan", d: "Keluar", key: "A" },
-      { r: 3, rName: "DETEKTIF KASUS", no: 5, pts: 15, q: "Teman tidak diberi kesempatan bicara. Kamu …", a: "Memberinya kesempatan", b: "Memotong", c: "Mengabaikan", d: "Menyuruh diam", key: "A" },
-      { r: 3, rName: "DETEKTIF KASUS", no: 6, pts: 15, q: "Teman kalah lomba dan kecewa. Sikap tepat?", a: "Memberi semangat", b: "Mengejek", c: "Menyalahkan", d: "Meninggalkan", key: "A" },
-      { r: 3, rName: "DETEKTIF KASUS", no: 7, pts: 15, q: "Ada komentar kebencian di media sosial. Respons terbaik?", a: "Tidak menyebarkan dan melaporkan bila perlu", b: "Membalas hinaan", c: "Menyebarkan", d: "Mengajak menyerang", key: "A" },
-      { r: 3, rName: "DETEKTIF KASUS", no: 8, pts: 15, q: "Ketua memilih keputusan sendiri tanpa diskusi. Tindakan tepat?", a: "Mengajak bermusyawarah", b: "Mendukung tanpa bertanya", c: "Marah", d: "Membubarkan kelompok", key: "A" },
-      { r: 3, rName: "DETEKTIF KASUS", no: 9, pts: 15, q: "Anggota tidak mampu melakukan tugas berat. Solusi?", a: "Memberi tugas sesuai kemampuan", b: "Mengejek", c: "Mengeluarkan", d: "Memaksa", key: "A" },
-      { r: 3, rName: "DETEKTIF KASUS", no: 10, pts: 15, q: "Pilihan ketua kelas berbeda. Cara menjaga persatuan?", a: "Menghormati hasil sesuai aturan", b: "Bermusuhan", c: "Mengejek pemenang", d: "Membuat kelompok lawan", key: "A" },
-
-      // RONDE 4: TEBAK & REBUTAN (10 Soal)
-      { r: 4, rName: "TEBAK & REBUTAN", no: 1, pts: 15, q: "Aku berbentuk bintang dan melambangkan sila …", a: "1", b: "2", c: "3", d: "5", key: "A" },
-      { r: 4, rName: "TEBAK & REBUTAN", no: 2, pts: 15, q: "Aku adalah rantai. Aku melambangkan …", a: "Sila 1", b: "Sila 2", c: "Sila 4", d: "Sila 5", key: "B" },
-      { r: 4, rName: "TEBAK & REBUTAN", no: 3, pts: 15, q: "Aku adalah pohon beringin. Nilai utamaku …", a: "Persatuan", b: "Persaingan", c: "Kekuasaan", d: "Kepentingan pribadi", key: "A" },
-      { r: 4, rName: "TEBAK & REBUTAN", no: 4, pts: 15, q: "Aku adalah kepala banteng. Aku berkaitan dengan …", a: "Musyawarah", b: "Keadilan", c: "Ketuhanan", d: "Kemanusiaan", key: "A" },
-      { r: 4, rName: "TEBAK & REBUTAN", no: 5, pts: 15, q: "Aku adalah padi dan kapas. Aku melambangkan …", a: "Keadilan sosial", b: "Persatuan", c: "Musyawarah", d: "Ketuhanan", key: "A" },
-      { r: 4, rName: "TEBAK & REBUTAN", no: 6, pts: 15, q: "REBUTAN: Sebutkan sila ke-3!", a: "Sila 1", b: "Sila 2", c: "Sila 3 (Persatuan Indonesia)", d: "Sila 4", key: "C" },
-      { r: 4, rName: "TEBAK & REBUTAN", no: 7, pts: 15, q: "REBUTAN: Lambang sila ke-4?", a: "Rantai", b: "Kepala banteng", c: "Bintang", d: "Padi dan kapas", key: "B" },
-      { r: 4, rName: "TEBAK & REBUTAN", no: 8, pts: 15, q: "REBUTAN: Dua contoh gotong royong di sekolah?", a: "Kerja bakti dan piket bersama", b: "Bertengkar", c: "Mencontek", d: "Mengejek", key: "A" },
-      { r: 4, rName: "TEBAK & REBUTAN", no: 9, pts: 15, q: "REBUTAN: Tujuan musyawarah?", a: "Mencapai mufakat", b: "Mencari musuh", c: "Memaksakan kehendak", d: "Menang sendiri", key: "A" },
-      { r: 4, rName: "TEBAK & REBUTAN", no: 10, pts: 15, q: "REBUTAN: Satu cara menjaga persatuan?", a: "Menghargai perbedaan", b: "Mengejek", c: "Memilih-milih teman", d: "Menyebar konflik", key: "A" },
-
-      // RONDE 5: FINAL BATTLE • HOTS (10 Soal)
-      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 1, pts: 25, q: "Mengapa Pancasila tidak cukup hanya dihafalkan?", a: "Harus diwujudkan dalam perilaku", b: "Agar mudah diuji", c: "Supaya menang kuis", d: "Hanya untuk buku", key: "A" },
-      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 2, pts: 25, q: "Jika kepentingan pribadi bertentangan dengan kepentingan bersama …", a: "Mencari solusi yang mengutamakan kepentingan bersama secara adil", b: "Selalu memilih diri sendiri", c: "Memaksa", d: "Menghindar", key: "A" },
-      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 3, pts: 25, q: "Mengapa toleransi penting di Indonesia?", a: "Karena masyarakat beragam", b: "Agar semua sama", c: "Agar tidak perlu aturan", d: "Agar tidak ada perbedaan", key: "A" },
-      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 4, pts: 25, q: "Cara menerapkan Pancasila di media sosial …", a: "Berkomentar santun dan menghargai perbedaan", b: "Menyebar hoaks", c: "Menghina", d: "Memprovokasi", key: "A" },
-      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 5, pts: 25, q: "Jika musyawarah belum mufakat …", a: "Mencari jalan tengah sesuai aturan", b: "Memaksa", c: "Bubar", d: "Bertengkar", key: "A" },
-      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 6, pts: 25, q: "Mengapa gotong royong memperkuat persatuan?", a: "Mendorong kerja sama dan kepedulian", b: "Membuat semua sama", c: "Menghilangkan perbedaan", d: "Membatasi orang", key: "A" },
-      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 7, pts: 25, q: "Jika terjadi konflik antarteman, sila ke-4 dapat diterapkan dengan …", a: "Dialog dan musyawarah", b: "Saling menyalahkan", c: "Menyebar masalah", d: "Memihak", key: "A" },
-      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 8, pts: 25, q: "Dampak ketidakadilan di sekolah?", a: "Muncul rasa tidak percaya dan konflik", b: "Semua kompak", c: "Prestasi pasti naik", d: "Masalah hilang", key: "A" },
-      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 9, pts: 25, q: "Bagaimana siswa menjadi teladan Pancasila?", a: "Jujur, toleran, adil, dan bekerja sama", b: "Hanya hafal sila", c: "Menang sendiri", d: "Menghindari semua kegiatan", key: "A" },
-      { r: 5, rName: "FINAL BATTLE (HOTS)", no: 10, pts: 25, q: "Mengapa perbedaan budaya perlu dihargai?", a: "Kekayaan bangsa dan dapat memperkuat persatuan", b: "Agar budaya hilang", c: "Supaya semua sama", d: "Agar tidak ada diskusi", key: "A" }
-    ];
-
-    const challengeCards = [
-      { id: "DOUBLE", title: "DOUBLE POINT", desc: "Gandakan poin soal berikutnya.", pts: 20 },
-      { id: "SHIELD", title: "SHIELD", desc: "Jika salah, tidak mendapat penalti.", pts: 10 },
-      { id: "STEAL", title: "STEAL", desc: "Rebut soal saat tim lain salah.", pts: 15 },
-      { id: "SWITCH", title: "SWITCH", desc: "Tukar soal dengan tim lain.", pts: 10 },
-      { id: "TIME", title: "TIME ATTACK", desc: "Jawab dalam 10 detik, bonus +10.", pts: 20 },
-      { id: "NOTALK", title: "NO TALK", desc: "Peragakan pengamalan sila tanpa bicara.", pts: 20 },
-      { id: "YELYEL", title: "YEL-YEL PANCASILA", desc: "Buat yel-yel Pancasila selama 15 detik bersama tim.", pts: 20 },
-      { id: "5SILA", title: "5 SILA URUT", desc: "Sebutkan 5 sila urut tanpa melihat buku.", pts: 20 },
-      { id: "EXAMPLE", title: "3 CONTOH NYATA", desc: "Sebutkan 3 contoh pengamalan sila di sekolah.", pts: 20 },
-      { id: "WHY", title: "ALASAN LOGIS", desc: "Jelaskan alasan mengapa pengamalan sila ini penting.", pts: 20 }
-    ];
+    // Bank Soal & Kartu Dinamis (Dimuat dari Google Sheets)
+    let rawQuestions = [];
+    let challengeCardsList = [];
 
     let teams = [
       { id: 1, name: "Tim 1 - Garuda", captain: "Ahmad", scores: [0, 0, 0, 0, 0], bonus: 0 },
@@ -1297,30 +1292,54 @@
         return;
       }
 
-      // Filter berdasarkan Grade dan Topik
+      // Filter soal berdasarkan Grade dan Topik yang dipilih guru
       const filtered = rawQuestions.filter(q => {
         const matchGrade = (selectedGameGrade === 'SEMUA') || (q.grade === 'SEMUA') || (q.grade === selectedGameGrade);
         const matchTopic = checkedTopics.includes(q.topic) || q.topic === 'UMUM';
         return matchGrade && matchTopic;
       });
 
-      if (filtered.length < 5) {
-        showToast("Soal pada kriteria ini kurang dari 5. Tambah soal atau pilih topik lain.", "error");
+      if (filtered.length === 0) {
+        showToast("Tidak ada soal yang sesuai dengan kriteria kelas & topik ini!", "error");
         return;
       }
 
-      // Acak per Ronde (Fisher-Yates)
       const grouped = { 1: [], 2: [], 3: [], 4: [], 5: [] };
       filtered.forEach(q => {
         if (grouped[q.r]) grouped[q.r].push(q);
       });
 
       let gamePool = [];
+      const fallbackNotice = [];
+
+      // Pengacakan Cerdas & Auto-Fallback Cross-Round Jika Ada Ronde yang Kosong
       for (let r = 1; r <= 5; r++) {
-        const shuffled = shuffleArray(grouped[r].length > 0 ? grouped[r] : rawQuestions.filter(x => x.r === r));
+        let roundQuestions = grouped[r];
+
+        // Jika ronde ini kosong di spreadsheet/filter, ambil secara proporsional dari soal topik yang sama di ronde lain
+        if (!roundQuestions || roundQuestions.length === 0) {
+          const crossRoundPool = filtered.filter(q => q.r !== r);
+          if (crossRoundPool.length > 0) {
+            roundQuestions = shuffleArray(crossRoundPool).slice(0, 5).map(q => ({
+              ...q,
+              r: r,
+              rName: roundMetadata[r].title,
+              pts: STRICT_ROUND_RULES[r].minPts
+            }));
+            fallbackNotice.push(`Ronde ${r} (${roundMetadata[r].title})`);
+          } else {
+            roundQuestions = rawQuestions.filter(x => x.r === r);
+          }
+        }
+
+        const shuffled = shuffleArray(roundQuestions);
         shuffled.forEach((q, idx) => {
           gamePool.push({ ...q, no: idx + 1 });
         });
+      }
+
+      if (fallbackNotice.length > 0) {
+        showToast(`Auto-Fallback: Soal ${fallbackNotice.join(', ')} diambil acak dari topik yang sama!`, "info");
       }
 
       rawQuestions = gamePool;
@@ -1332,25 +1351,157 @@
       showRoundIntro(1);
     }
 
+    // --- FITUR EDIT & HAPUS SOAL DARI FRONTEND ---
+    function openEditQuestionModal(idx) {
+      const q = rawQuestions[idx];
+      if (!q) return;
+
+      document.getElementById('editQuestionId').value = q.id || '';
+      document.getElementById('editGrade').value = q.grade || 'SEMUA';
+      document.getElementById('editTopic').value = q.topic || 'UMUM';
+      document.getElementById('editRoundNum').value = q.r || 1;
+      document.getElementById('editQuestionText').value = q.q || '';
+      document.getElementById('editOptA').value = q.a || '';
+      document.getElementById('editOptB').value = q.b || '';
+      document.getElementById('editOptC').value = q.c === '—' ? '' : q.c;
+      document.getElementById('editOptD').value = q.d === '—' ? '' : q.d;
+      document.getElementById('editKey').value = q.key || 'A';
+      document.getElementById('editPoints').value = q.pts || 10;
+
+      openModal('modalEditQuestion');
+      lucide.createIcons();
+    }
+
+    function syncEditRoundRules() {
+      const r = parseInt(document.getElementById('editRoundNum').value, 10);
+      const rule = STRICT_ROUND_RULES[r];
+      if (rule) {
+        document.getElementById('editPoints').value = rule.minPts;
+      }
+    }
+
+    async function submitUpdateQuestion() {
+      const id = document.getElementById('editQuestionId').value;
+      const grade = document.getElementById('editGrade').value;
+      const topic = document.getElementById('editTopic').value.trim() || 'UMUM';
+      const rNum = parseInt(document.getElementById('editRoundNum').value, 10);
+      const qText = document.getElementById('editQuestionText').value.trim();
+      const optA = document.getElementById('editOptA').value.trim();
+      const optB = document.getElementById('editOptB').value.trim();
+      const optC = document.getElementById('editOptC').value.trim() || '—';
+      const optD = document.getElementById('editOptD').value.trim() || '—';
+      const key = document.getElementById('editKey').value;
+      const pts = parseInt(document.getElementById('editPoints').value, 10) || 10;
+
+      const rule = STRICT_ROUND_RULES[rNum];
+      if (!qText || !optA || !optB) {
+        showToast("Teks pertanyaan, Opsi A & B wajib diisi!", "error");
+        return;
+      }
+      if (pts < rule.minPts) {
+        showToast(`Poin Ronde ${rNum} minimal ${rule.minPts} poin!`, "error");
+        return;
+      }
+
+      const updatedQ = {
+        id: id,
+        grade: grade,
+        topic: topic,
+        r: rNum,
+        rName: rule.name,
+        q: qText,
+        a: optA,
+        b: optB,
+        c: optC,
+        d: optD,
+        key: key,
+        pts: pts
+      };
+
+      const localIdx = rawQuestions.findIndex(x => String(x.id) === String(id));
+      if (localIdx !== -1) {
+        rawQuestions[localIdx] = updatedQ;
+      }
+      renderQuestionsTable();
+      closeModal('modalEditQuestion');
+
+      showLoading(true, "Menyimpan perubahan ke Spreadsheet...");
+
+      if (APP_SCRIPT_URL.includes("YOUR_DEPLOYMENT_ID") || !sessionToken) {
+        showLoading(false);
+        showToast("Soal diperbarui secara lokal!", "success");
+        return;
+      }
+
+      try {
+        const res = await fetch(APP_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'updateQuestion',
+            session_token: sessionToken,
+            teacherName: document.getElementById('settingTeacherName').value,
+            question: updatedQ
+          })
+        });
+        const data = await res.json();
+        showLoading(false);
+        showToast(data.message || "Soal berhasil diperbarui!", "success");
+      } catch (err) {
+        showLoading(false);
+        showToast("Gagal update soal ke server: " + err.message, "error");
+      }
+    }
+
+    async function deleteQuestionItem(id, localIdx) {
+      if (!confirm("Apakah Anda yakin ingin menghapus butir soal ini dari Spreadsheet?")) return;
+
+      rawQuestions.splice(localIdx, 1);
+      renderQuestionsTable();
+
+      if (APP_SCRIPT_URL.includes("YOUR_DEPLOYMENT_ID") || !sessionToken) {
+        showToast("Soal dihapus lokal", "info");
+        return;
+      }
+
+      try {
+        await fetch(APP_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'deleteQuestion', session_token: sessionToken, id: id })
+        });
+        showToast("Soal dihapus permanen dari Spreadsheet", "info");
+      } catch (e) {}
+    }
+
     function renderQuestionsTable() {
       document.getElementById('totalQuestionsCount').innerText = rawQuestions.length;
       const container = document.getElementById('questionsListContainer');
       container.innerHTML = '';
 
-      rawQuestions.forEach(q => {
+      rawQuestions.forEach((q, idx) => {
         const item = document.createElement('div');
-        item.className = "p-3 bg-slate-900/90 border border-slate-700/80 rounded-xl flex items-start justify-between gap-3 text-xs";
+        item.className = "p-3 bg-slate-900/90 border border-slate-700/80 rounded-xl flex items-center justify-between gap-3 text-xs";
         item.innerHTML = `
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
+          <div class="space-y-1 flex-1">
+            <div class="flex flex-wrap items-center gap-1.5">
               <span class="px-2 py-0.5 bg-amber-500/20 text-amber-400 font-bold rounded">R${q.r}</span>
+              <span class="px-2 py-0.5 bg-red-950/80 text-red-300 border border-red-800/80 rounded text-[10px] font-bold">${q.rName || roundMetadata[q.r]?.title}</span>
               <span class="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[10px]">${q.grade || 'SEMUA'}</span>
               <span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px]">${q.topic || 'UMUM'}</span>
-              <span class="font-bold text-white leading-snug">${q.q}</span>
             </div>
+            <p class="font-bold text-white leading-snug">${q.q}</p>
             <div class="text-[11px] text-slate-400 text-light-muted">
-              Kunci: <b class="text-emerald-400">${q.key}</b> | Poin: ${q.pts} | A: ${q.a} | B: ${q.b}
+              Kunci: <b class="text-emerald-400">${q.key}</b> | Poin: <b class="text-amber-400">${q.pts}</b> | A: ${q.a} | B: ${q.b}
             </div>
+          </div>
+          <div class="flex items-center gap-1.5 ml-2">
+            <button onclick="openEditQuestionModal(${idx})" title="Edit Soal" class="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-amber-400">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="deleteQuestionItem('${q.id}', ${idx})" title="Hapus Soal" class="p-2 bg-red-950/50 hover:bg-red-900 border border-red-800 rounded-lg text-red-400">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
           </div>
         `;
         container.appendChild(item);
@@ -1426,6 +1577,15 @@
       }
     }
 
+    // Standar Baku Aturan Ronde & Poin Minimal
+    const STRICT_ROUND_RULES = {
+      1: { name: "PILIHAN GANDA", minPts: 10, reqOpts: 4 },
+      2: { name: "BENAR ATAU SALAH", minPts: 10, reqOpts: 2 },
+      3: { name: "DETEKTIF KASUS", minPts: 15, reqOpts: 4 },
+      4: { name: "TEBAK & REBUTAN", minPts: 15, reqOpts: 2 },
+      5: { name: "FINAL BATTLE (HOTS)", minPts: 25, reqOpts: 4 }
+    };
+
     function handleFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1438,28 +1598,81 @@
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-          const mapped = jsonData.map(row => ({
-            grade: String(row['Kelas'] || row['grade'] || 'SEMUA').toUpperCase().trim(),
-            topic: String(row['Topik'] || row['topic'] || 'UMUM').trim(),
-            r: parseInt(row['Ronde'] || row['r'] || 1, 10),
-            rName: row['Nama Ronde'] || roundMetadata[parseInt(row['Ronde'] || 1, 10)]?.title || 'PILIHAN GANDA',
-            q: String(row['Pertanyaan'] || row['q'] || '').trim(),
-            a: String(row['Pilihan A'] || row['a'] || '').trim(),
-            b: String(row['Pilihan B'] || row['b'] || '').trim(),
-            c: String(row['Pilihan C'] || row['c'] || '—').trim(),
-            d: String(row['Pilihan D'] || row['d'] || '—').trim(),
-            key: String(row['Kunci'] || row['key'] || 'A').toUpperCase().trim(),
-            pts: parseInt(row['Poin'] || row['pts'] || 10, 10)
-          })).filter(q => q.q && q.a);
+          const validQuestions = [];
+          const rejectedRows = [];
 
-          if (mapped.length === 0) {
-            showToast("File tidak memiliki baris soal yang valid!", "error");
+          jsonData.forEach((row, idx) => {
+            const rowNum = idx + 2;
+            const r = parseInt(row['Ronde'] || row['r'], 10);
+            const rName = String(row['Nama Ronde'] || row['rName'] || '').toUpperCase().trim();
+            const q = String(row['Pertanyaan'] || row['q'] || '').trim();
+            const a = String(row['Pilihan A'] || row['a'] || '').trim();
+            const b = String(row['Pilihan B'] || row['b'] || '').trim();
+            const c = String(row['Pilihan C'] || row['c'] || '—').trim();
+            const d = String(row['Pilihan D'] || row['d'] || '—').trim();
+            const key = String(row['Kunci'] || row['key'] || '').toUpperCase().trim();
+            const pts = parseInt(row['Poin'] || row['pts'] || 0, 10);
+            const grade = String(row['Kelas'] || row['grade'] || 'SEMUA').toUpperCase().trim();
+            const topic = String(row['Topik'] || row['topic'] || 'UMUM').trim();
+
+            // Restriksi & Validasi Ketat
+            const rule = STRICT_ROUND_RULES[r];
+            if (!rule) {
+              rejectedRows.push(`Baris ${rowNum}: Ronde harus bernilai 1-5 (Ditemukan: '${r}')`);
+              return;
+            }
+            if (rName && rName !== rule.name) {
+              rejectedRows.push(`Baris ${rowNum}: Nama Ronde ${r} harus '${rule.name}' (Ditemukan: '${rName}')`);
+              return;
+            }
+            if (pts < rule.minPts) {
+              rejectedRows.push(`Baris ${rowNum}: Poin Ronde ${r} minimal ${rule.minPts} poin (Ditemukan: ${pts})`);
+              return;
+            }
+            if (!q || !a || !b) {
+              rejectedRows.push(`Baris ${rowNum}: Pertanyaan, Opsi A, dan Opsi B wajib terisi.`);
+              return;
+            }
+            if (rule.reqOpts === 4 && (!c || c === '—' || !d || d === '—')) {
+              rejectedRows.push(`Baris ${rowNum}: Ronde ${r} wajib mengisi 4 opsi (A, B, C, D).`);
+              return;
+            }
+            if (!['A', 'B', 'C', 'D'].includes(key)) {
+              rejectedRows.push(`Baris ${rowNum}: Kunci jawaban harus A/B/C/D (Ditemukan: '${key}')`);
+              return;
+            }
+            if (r === 2 && !['A', 'B'].includes(key)) {
+              rejectedRows.push(`Baris ${rowNum}: Ronde Benar/Salah kunci hanya boleh A atau B.`);
+              return;
+            }
+
+            validQuestions.push({
+              grade: ['7', '8', '9', 'SEMUA'].includes(grade) ? grade : 'SEMUA',
+              topic: topic || 'UMUM',
+              r: r,
+              rName: rule.name,
+              q: q,
+              a: a,
+              b: b,
+              c: c,
+              d: d,
+              key: key,
+              pts: pts
+            });
+          });
+
+          if (rejectedRows.length > 0) {
+            alert(`⚠️ PERINGATAN RESTRIKSI DATA UPLOAD (${rejectedRows.length} Baris Ditolak):\n\n` + rejectedRows.slice(0, 5).join('\n') + (rejectedRows.length > 5 ? `\n...dan ${rejectedRows.length - 5} kesalahan lainnya.` : ''));
+          }
+
+          if (validQuestions.length === 0) {
+            showToast("Tidak ada soal yang lolos validasi format!", "error");
             return;
           }
 
-          rawQuestions = mapped;
+          rawQuestions = validQuestions;
           renderQuestionsTable();
-          showLoading(true, `Mengimpor ${mapped.length} soal ke Spreadsheet...`);
+          showLoading(true, `Mengimpor ${validQuestions.length} soal valid ke Spreadsheet...`);
 
           if (APP_SCRIPT_URL.includes("YOUR_DEPLOYMENT_ID") || !sessionToken) {
             showLoading(false);
@@ -1491,13 +1704,16 @@
     function downloadQuestionTemplate() {
       const templateData = [
         { "Kelas": "7", "Topik": "Sejarah Pancasila", "Ronde": 1, "Nama Ronde": "PILIHAN GANDA", "Pertanyaan": "Lambang sila ke-1 adalah...", "Pilihan A": "Bintang", "Pilihan B": "Rantai", "Pilihan C": "Pohon Beringin", "Pilihan D": "Padi dan Kapas", "Kunci": "A", "Poin": 10 },
-        { "Kelas": "SEMUA", "Topik": "Toleransi", "Ronde": 2, "Nama Ronde": "BENAR / SALAH", "Pertanyaan": "Gotong royong memperkuat persatuan.", "Pilihan A": "BENAR", "Pilihan B": "SALAH", "Pilihan C": "—", "Pilihan D": "—", "Kunci": "A", "Poin": 10 }
+        { "Kelas": "SEMUA", "Topik": "Toleransi", "Ronde": 2, "Nama Ronde": "BENAR ATAU SALAH", "Pertanyaan": "Gotong royong memperkuat persatuan.", "Pilihan A": "BENAR", "Pilihan B": "SALAH", "Pilihan C": "—", "Pilihan D": "—", "Kunci": "A", "Poin": 10 },
+        { "Kelas": "8", "Topik": "Keadilan Sosial", "Ronde": 3, "Nama Ronde": "DETEKTIF KASUS", "Pertanyaan": "Teman tidak diberi giliran berbicara. Tindakan tepat?", "Pilihan A": "Memberikan kesempatan bicara", "Pilihan B": "Memotong bicaranya", "Pilihan C": "Meninggalkannya", "Pilihan D": "Mengejeknya", "Kunci": "A", "Poin": 15 },
+        { "Kelas": "SEMUA", "Topik": "Simbol Negara", "Ronde": 4, "Nama Ronde": "TEBAK & REBUTAN", "Pertanyaan": "Aku adalah pohon beringin. Aku melambangkan...", "Pilihan A": "Persatuan Indonesia", "Pilihan B": "Keadilan Sosial", "Pilihan C": "Kemanusiaan", "Pilihan D": "Musyawarah", "Kunci": "A", "Poin": 15 },
+        { "Kelas": "9", "Topik": "Analisis Nilai", "Ronde": 5, "Nama Ronde": "FINAL BATTLE (HOTS)", "Pertanyaan": "Mengapa pengamalan Pancasila harus diwujudkan nyata bukan hanya dihafal?", "Pilihan A": "Agar nilai luhur menjadi pembentuk karakter dan harmoni sosial", "Pilihan B": "Agar lulus ujian nilai", "Pilihan C": "Hanya untuk formalitas buku", "Pilihan D": "Supaya dipuji orang", "Kunci": "A", "Poin": 25 }
       ];
       const ws = XLSX.utils.json_to_sheet(templateData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Template Soal");
-      XLSX.writeFile(wb, "Template_Bank_Soal_Pancasila.xlsx");
-      showToast("Template Excel diunduh!", "info");
+      XLSX.writeFile(wb, "Template_Bank_Soal_Pancasila_Resmi.xlsx");
+      showToast("Template Excel Resmi diunduh!", "info");
     }
 
     async function syncQuestionsFromSheet() {
@@ -1665,12 +1881,17 @@
       }
     }
 
-    function triggerSurpriseCard(isManual = false, onComplete = null) {
+     function triggerSurpriseCard(isManual = false, onComplete = null) {
+      if (!challengeCardsList || challengeCardsList.length === 0) {
+        showToast("Belum ada kartu tantangan di Sheet ChallengeCards!", "info");
+        if (onComplete) onComplete();
+        return;
+      }
+
       pauseTimer();
       playSurpriseChime();
 
-      const cardsPool = challengeCardsList.length > 0 ? challengeCardsList : challengeCards;
-      const randomCard = cardsPool[Math.floor(Math.random() * cardsPool.length)];
+      const randomCard = challengeCardsList[Math.floor(Math.random() * challengeCardsList.length)];
       document.getElementById('cardEventTitle').innerText = randomCard.title;
       document.getElementById('cardEventDesc').innerText = randomCard.desc;
       document.getElementById('cardEventPts').innerText = randomCard.pts;
